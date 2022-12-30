@@ -6,6 +6,17 @@ To deploy, once all tools from the Rust discovery book are installed:
 
     $ cargo embed
 
+## Resources
+
+- [Adafruit] - Wiring and working guide, aims Arduino
+- [hzeller GitHub] - Wiring and working guide, also explain some issues if using a 3.3V logic circuits like with Cortex-M.
+- [Big Mess o' Wires] - Basic working example, which helped understand the correct OE/Line/Latch sequence and confirmed 
+  some issues I had when not modifying the line selection.
+
+[Adafruit]: https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview
+[Big Mess o' Wires]: https://www.bigmessowires.com/2018/05/24/64-x-32-led-matrix-programming/
+[hzeller GitHub]: https://github.com/hzeller/rpi-rgb-led-matrix
+
 ## License
 
 MIT License
