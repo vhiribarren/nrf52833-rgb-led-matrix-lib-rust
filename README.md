@@ -2,9 +2,24 @@
 
 ## Deployment
 
-To deploy, once all tools from the Rust discovery book are installed:
+To deploy, you must set up the tools described in the Rust [Discovery Book]. Notably:
+- Rust (obviously)
+- Cargo Embed
+- Arm GCC toolchain
+- The Rust/LLVM target `thumbv7em-none-eabihf` for micro:bit v2
+
+**This project is already configured to be specifically deployed on the micro:bit v2.**
+
+Once they are installed:
 
     $ cargo embed
+
+Some examples are also presents in the `examples/` directory. To use them:
+
+    $ cargo embed --example raw-simple-display
+
+
+[Discovery Book]: https://docs.rust-embedded.org/discovery/
 
 ## Resources
 
