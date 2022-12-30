@@ -65,13 +65,14 @@ fn main() -> ! {
         r2: p0.p0_31.into(),
         g2: p0.p0_28.into(),
         b2: p0.p0_14.into(),
-        clk: p0.p0_30.into(),
-        lat: p0.p0_23.into(),
-        oe: p0.p0_12.into(),
-        a: p1.p1_15.into(),
+        a: p1.p1_05.into(),
         b: p0.p0_11.into(),
         c: p0.p0_10.into(),
         d: p0.p0_09.into(),
+        clk: p0.p0_30.into(),
+        lat: p0.p0_23.into(),
+        oe: p0.p0_12.into(),
+
     });
 
     for col in 0..64 {
