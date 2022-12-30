@@ -25,20 +25,20 @@ SOFTWARE.
 use microbit::hal::gpio::{Level, Output, Pin, PushPull};
 use microbit::hal::prelude::*;
 
-pub struct LedMatrixPins64x32 {
-    pub r1: Pin<Output<PushPull>>,
-    pub g1: Pin<Output<PushPull>>,
-    pub b1: Pin<Output<PushPull>>,
-    pub r2: Pin<Output<PushPull>>,
-    pub g2: Pin<Output<PushPull>>,
-    pub b2: Pin<Output<PushPull>>,
-    pub a: Pin<Output<PushPull>>,
-    pub b: Pin<Output<PushPull>>,
-    pub c: Pin<Output<PushPull>>,
-    pub d: Pin<Output<PushPull>>,
-    pub clk: Pin<Output<PushPull>>,
-    pub lat: Pin<Output<PushPull>>,
-    pub oe: Pin<Output<PushPull>>,
+pub struct LedMatrixPins64x32<MODE> {
+    pub r1: Pin<MODE>,
+    pub g1: Pin<MODE>,
+    pub b1: Pin<MODE>,
+    pub r2: Pin<MODE>,
+    pub g2: Pin<MODE>,
+    pub b2: Pin<MODE>,
+    pub a: Pin<MODE>,
+    pub b: Pin<MODE>,
+    pub c: Pin<MODE>,
+    pub d: Pin<MODE>,
+    pub clk: Pin<MODE>,
+    pub lat: Pin<MODE>,
+    pub oe: Pin<MODE>,
 }
 
 pub struct LedMatrix<const N: usize = 4> {
@@ -55,7 +55,7 @@ pub struct LedMatrix<const N: usize = 4> {
 }
 
 impl LedMatrix {
-    pub fn new(pins: LedMatrixPins64x32) -> LedMatrix {
+    pub fn new<MODE>(pins: LedMatrixPins64x32<MODE>) -> LedMatrix {
         LedMatrix {
             pin_r1: pins.r1.into_push_pull_output(Level::Low),
             pin_g1: pins.g1.into_push_pull_output(Level::Low),
