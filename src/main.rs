@@ -98,8 +98,7 @@ fn main() -> ! {
             m.pin_g2.set_high().unwrap();
             m.pin_b2.set_high().unwrap();
         }
-        m.pin_clk.set_high().unwrap();
-        m.pin_clk.set_low().unwrap();
+        m.clock_color();
     }
 
     loop {

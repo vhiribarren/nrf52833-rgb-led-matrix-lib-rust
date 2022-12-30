@@ -48,7 +48,7 @@ pub struct LedMatrix<const N: usize = 4> {
     pub pin_r2: Pin<Output<PushPull>>,
     pub pin_g2: Pin<Output<PushPull>>,
     pub pin_b2: Pin<Output<PushPull>>,
-    pub pin_clk: Pin<Output<PushPull>>,
+    pin_clk: Pin<Output<PushPull>>,
     pin_lat: Pin<Output<PushPull>>,
     pin_oe: Pin<Output<PushPull>>,
     line_ctrl: [Pin<Output<PushPull>>; N],
@@ -90,5 +90,9 @@ impl<const N: usize> LedMatrix<N> {
         self.pin_lat.set_high().unwrap();
         self.pin_lat.set_low().unwrap();
         self.pin_oe.set_low().unwrap();
+    }
+    pub fn clock_color(&mut self) {
+        self.pin_clk.set_high().unwrap();
+        self.pin_clk.set_low().unwrap();
     }
 }
