@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+use crate::canvas::Canvas;
 use microbit::hal::gpio::{Level, Output, Pin, PushPull};
 use microbit::hal::prelude::*;
 
@@ -41,7 +42,7 @@ pub struct LedMatrixPins64x32<MODE> {
     pub oe: Pin<MODE>,
 }
 
-pub struct LedMatrix<const N: usize = 4> {
+pub struct LedMatrix<const LINES: usize = 4, const WIDTH: usize = 64, const HEIGHT: usize = 32> {
     pub pin_r1: Pin<Output<PushPull>>,
     pub pin_g1: Pin<Output<PushPull>>,
     pub pin_b1: Pin<Output<PushPull>>,
@@ -51,7 +52,7 @@ pub struct LedMatrix<const N: usize = 4> {
     pin_clk: Pin<Output<PushPull>>,
     pin_lat: Pin<Output<PushPull>>,
     pin_oe: Pin<Output<PushPull>>,
-    line_ctrl: [Pin<Output<PushPull>>; N],
+    line_ctrl: [Pin<Output<PushPull>>; LINES],
 }
 
 impl LedMatrix {
@@ -76,11 +77,54 @@ impl LedMatrix {
     }
 }
 
-impl<const N: usize> LedMatrix<N> {
-    pub fn draw_canvas() {}
+impl<const LINES: usize, const WIDTH: usize, const HEIGHT: usize> LedMatrix<LINES, WIDTH, HEIGHT> {
+    pub fn draw_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>) {
+        let half_height = HEIGHT / 2;
+        for line_index in 0..half_height {
+            for col_index in 0..WIDTH {
+                let color_down = &canvas.0[line_index][col_index];
+                let color_up = &canvas.0[line_index + half_height][col_index];
+                if color_down.r > 0 {
+                    self.pin_r1.set_high().unwrap();
+                } else {
+                    self.pin_r1.set_low().unwrap();
+                }
+                if color_up.r > 0 {
+                    self.pin_r2.set_high().unwrap();
+                } else {
+                    self.pin_r2.set_low().unwrap();
+                }
+
+                if color_down.g > 0 {
+                    self.pin_g1.set_high().unwrap();
+                } else {
+                    self.pin_g1.set_low().unwrap();
+                }
+                if color_up.g > 0 {
+                    self.pin_g2.set_high().unwrap();
+                } else {
+                    self.pin_g2.set_low().unwrap();
+                }
+
+                if color_down.b > 0 {
+                    self.pin_b1.set_high().unwrap();
+                } else {
+                    self.pin_b1.set_low().unwrap();
+                }
+                if color_up.b > 0 {
+                    self.pin_b2.set_high().unwrap();
+                } else {
+                    self.pin_b2.set_low().unwrap();
+                }
+                self.clock_color();
+            }
+            self.latch_to_line(line_index as u8);
+        }
+    }
+
     pub fn latch_to_line(&mut self, line: u8) {
         self.pin_oe.set_high().unwrap();
-        let mline = line % 2_u8.pow(N as u32);
+        let mline = line % 2_u8.pow(LINES as u32);
         for pin_idx in 0..self.line_ctrl.len() {
             let enable_pin = (mline & (1 << pin_idx)) != 0;
             self.line_ctrl[pin_idx]

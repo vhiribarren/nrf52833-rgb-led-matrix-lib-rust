@@ -25,4 +25,5 @@ SOFTWARE.
 #![deny(unsafe_code)]
 #![no_std]
 
+pub mod canvas;
 pub mod ledmatrix;

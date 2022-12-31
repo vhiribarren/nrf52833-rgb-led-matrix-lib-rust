@@ -29,7 +29,7 @@ SOFTWARE.
 use cortex_m_rt::entry;
 
 use microbit::hal::gpio;
-use microbit::hal::prelude::*;
+use microbit_led_matrix::canvas::{Canvas, Color};
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 use panic_halt as _;
 
@@ -72,38 +72,17 @@ fn main() -> ! {
         clk: p0.p0_30.into(),
         lat: p0.p0_23.into(),
         oe: p0.p0_12.into(),
-
     });
 
-    for col in 0..64 {
-        if col < 64 / 3 {
-            m.pin_r1.set_low().unwrap();
-            m.pin_g1.set_low().unwrap();
-            m.pin_b1.set_high().unwrap();
-            m.pin_r2.set_low().unwrap();
-            m.pin_g2.set_low().unwrap();
-            m.pin_b2.set_high().unwrap();
-        } else if col > 2 * 64 / 3 {
-            m.pin_r1.set_high().unwrap();
-            m.pin_g1.set_low().unwrap();
-            m.pin_b1.set_low().unwrap();
-            m.pin_r2.set_high().unwrap();
-            m.pin_g2.set_low().unwrap();
-            m.pin_b2.set_low().unwrap();
-        } else {
-            m.pin_r1.set_high().unwrap();
-            m.pin_g1.set_high().unwrap();
-            m.pin_b1.set_high().unwrap();
-            m.pin_r2.set_high().unwrap();
-            m.pin_g2.set_high().unwrap();
-            m.pin_b2.set_high().unwrap();
-        }
-        m.clock_color();
-    }
+    let mut canvas = Canvas::<64, 32>::new();
+    canvas.draw_rectangle(0, 0, 32, 16, Color::BLUE);
+    canvas.draw_rectangle(32, 0, 32, 16, Color::RED);
+    canvas.draw_rectangle(0, 16, 32, 16, Color::YELLOW);
+    canvas.draw_rectangle(32, 16, 32, 16, Color::WHITE);
+    canvas.draw_rectangle(32 / 2, 16 / 2, 32, 16, Color::MAGENTA);
+    canvas.draw_rectangle(32 * 3 / 4, 16 * 3 / 4, 32 / 2, 16 / 2, Color::GREEN);
 
     loop {
-        for line in 0..16 {
-            m.latch_to_line(line);
-        }
+        m.draw_canvas(&canvas);
     }
 }
