@@ -12,12 +12,14 @@ To deploy, you must set up the tools described in the Rust [Discovery Book]. Not
 
 Once they are installed:
 
-    $ cargo embed
+    $ cargo embed --release
 
 Some examples are also presents in the `examples/` directory. To use them:
 
-    $ cargo embed --example raw-simple-display
+    $ cargo embed --release --example raw-simple-display
 
+Unless you need to debug, you should use the release version. The matrix needs frequent refreshes,
+which may be impeded by the unoptimized code version.
 
 [Discovery Book]: https://docs.rust-embedded.org/discovery/
 
