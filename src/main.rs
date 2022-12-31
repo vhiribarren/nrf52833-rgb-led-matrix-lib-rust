@@ -30,6 +30,7 @@ use cortex_m_rt::entry;
 
 use microbit::hal::gpio;
 use microbit_led_matrix::canvas::{Canvas, Color};
+use microbit_led_matrix::fonts::font5x7;
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 use panic_halt as _;
 
@@ -75,13 +76,21 @@ fn main() -> ! {
     });
 
     let mut canvas = Canvas::<64, 32>::new();
-    canvas.draw_rectangle(0, 0, 32, 16, Color::BLUE);
-    canvas.draw_rectangle(32, 0, 32, 16, Color::RED);
-    canvas.draw_rectangle(0, 16, 32, 16, Color::YELLOW);
-    canvas.draw_rectangle(32, 16, 32, 16, Color::WHITE);
-    canvas.draw_rectangle(32 / 2, 16 / 2, 32, 16, Color::MAGENTA);
-    canvas.draw_rectangle(32 * 3 / 4, 16 * 3 / 4, 32 / 2, 16 / 2, Color::GREEN);
-
+    canvas.draw_stencil(0, 0, &font5x7::A, Color::RED);
+    canvas.draw_stencil(6, 0, &font5x7::B, Color::RED);
+    canvas.draw_stencil(12, 0, &font5x7::C, Color::RED);
+    canvas.draw_stencil(18, 0, &font5x7::H, Color::RED);
+    canvas.draw_stencil(24, 0, &font5x7::T, Color::RED);
+    canvas.draw_stencil(30, 0, &font5x7::U, Color::RED);
+    canvas.draw_stencil(36, 0, &font5x7::V, Color::RED);
+    canvas.draw_stencil(42, 0, &font5x7::A, Color::RED);
+    canvas.draw_stencil(48, 0, &font5x7::B, Color::RED);
+    canvas.draw_stencil(54, 0, &font5x7::C, Color::RED);
+    canvas.draw_stencil(60, 0, &font5x7::T, Color::RED);
+    canvas.draw_stencil(0, 8, &font5x7::A, Color::RED);
+    canvas.draw_stencil(0, 16, &font5x7::A, Color::RED);
+    canvas.draw_stencil(0, 24, &font5x7::A, Color::RED);
+    canvas.draw_stencil(0, 32, &font5x7::A, Color::RED);
     loop {
         m.draw_canvas(&canvas);
     }

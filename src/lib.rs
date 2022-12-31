@@ -26,4 +26,5 @@ SOFTWARE.
 #![no_std]
 
 pub mod canvas;
+pub mod fonts;
 pub mod ledmatrix;

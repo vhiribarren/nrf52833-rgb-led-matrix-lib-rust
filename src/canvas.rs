@@ -24,7 +24,7 @@ SOFTWARE.
 
 use core::cmp::min;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
@@ -55,6 +55,17 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
     pub fn new() -> Self {
         Canvas([[Color::BLACK; WIDTH]; HEIGHT])
     }
+    pub fn with_background_color(color: Color) -> Self {
+        Canvas([[color; WIDTH]; HEIGHT])
+    }
+    pub fn clear_with_color(&mut self, color: Color) -> &mut Canvas<WIDTH, HEIGHT> {
+        for line in 0..HEIGHT {
+            for col in 0..WIDTH {
+                self.0[line][col] = color;
+            }
+        }
+        self
+    }
     pub fn draw_rectangle(
         &mut self,
         x: usize,
@@ -62,7 +73,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         width: usize,
         height: usize,
         color: Color,
-    ) {
+    ) -> &mut Canvas<WIDTH, HEIGHT> {
         let y_max = min(y + height, HEIGHT);
         let x_max = min(x + width, WIDTH);
         for y_pos in y..y_max {
@@ -70,11 +81,32 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
                 self.0[y_pos][x_pos] = color;
             }
         }
+        self
     }
-    pub fn draw_pixel(&mut self, x: usize, y: usize, color: Color) {
+    pub fn draw_pixel(&mut self, x: usize, y: usize, color: Color) -> &mut Canvas<WIDTH, HEIGHT> {
         if x < WIDTH && y < HEIGHT {
             self.0[y][x] = color;
         }
+        self
+    }
+    pub fn draw_stencil<const W: usize, const H: usize>(
+        &mut self,
+        x: usize,
+        y: usize,
+        model: &[[u8; W]; H],
+        color: Color,
+    ) -> &mut Canvas<WIDTH, HEIGHT> {
+        let y_max = min(y + H, HEIGHT);
+        let x_max = min(x + W, WIDTH);
+        for (model_y_pos, canvas_y_pos) in (y..y_max).enumerate() {
+            for (model_x_pos, canvas_x_pos) in (x..x_max).enumerate() {
+                match model[model_y_pos][model_x_pos] {
+                    val if val == 0 => continue,
+                    _ => self.0[canvas_y_pos][canvas_x_pos] = color,
+                }
+            }
+        }
+        self
     }
 }
 
