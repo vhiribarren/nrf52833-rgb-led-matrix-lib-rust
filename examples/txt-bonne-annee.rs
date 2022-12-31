@@ -34,8 +34,6 @@ use microbit_led_matrix::fonts::font5x7;
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 use panic_halt as _;
 
-
-
 #[entry]
 fn main() -> ! {
     let peripherals = microbit::Peripherals::take().unwrap();
