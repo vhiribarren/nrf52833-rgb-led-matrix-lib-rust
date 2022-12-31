@@ -1,5 +1,7 @@
 # LED Matrix usage with BBC Microbit
 
+![used elements](docs/bonne_annee_material.jpg)
+
 ## Deployment
 
 To deploy, you must set up the tools described in the Rust [Discovery Book]. Notably:
