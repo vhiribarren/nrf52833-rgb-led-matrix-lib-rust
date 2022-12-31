@@ -80,10 +80,11 @@ impl LedMatrix {
 impl<const LINES: usize, const WIDTH: usize, const HEIGHT: usize> LedMatrix<LINES, WIDTH, HEIGHT> {
     pub fn draw_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>) {
         let half_height = HEIGHT / 2;
+        let raw_canvas = canvas.as_ref();
         for line_index in 0..half_height {
             for col_index in 0..WIDTH {
-                let color_down = &canvas.0[line_index][col_index];
-                let color_up = &canvas.0[line_index + half_height][col_index];
+                let color_down = &raw_canvas[line_index][col_index];
+                let color_up = &raw_canvas[line_index + half_height][col_index];
                 if color_down.r > 0 {
                     self.pin_r1.set_high().unwrap();
                 } else {

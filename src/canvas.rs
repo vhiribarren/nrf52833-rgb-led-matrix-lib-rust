@@ -43,9 +43,7 @@ impl Color {
 }
 
 #[derive(Clone)]
-pub struct Canvas<const WIDTH: usize = 64, const HEIGHT: usize = 32>(
-    pub(crate) [[Color; WIDTH]; HEIGHT],
-);
+pub struct Canvas<const WIDTH: usize = 64, const HEIGHT: usize = 32>([[Color; WIDTH]; HEIGHT]);
 
 impl<const WIDTH: usize, const HEIGHT: usize> Default for Canvas<WIDTH, HEIGHT> {
     fn default() -> Self {
@@ -72,5 +70,26 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
                 self.0[y_pos][x_pos] = color;
             }
         }
+    }
+    pub fn draw_pixel(&mut self, x: usize, y: usize, color: Color) {
+        if x < WIDTH && y < HEIGHT {
+            self.0[y][x] = color;
+        }
+    }
+}
+
+impl<const WIDTH: usize, const HEIGHT: usize> AsRef<[[Color; WIDTH]; HEIGHT]>
+    for Canvas<WIDTH, HEIGHT>
+{
+    fn as_ref(&self) -> &[[Color; WIDTH]; HEIGHT] {
+        &self.0
+    }
+}
+
+impl<const WIDTH: usize, const HEIGHT: usize> AsMut<[[Color; WIDTH]; HEIGHT]>
+    for Canvas<WIDTH, HEIGHT>
+{
+    fn as_mut(&mut self) -> &mut [[Color; WIDTH]; HEIGHT] {
+        &mut self.0
     }
 }
