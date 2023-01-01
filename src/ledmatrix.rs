@@ -24,7 +24,11 @@ SOFTWARE.
 
 use crate::canvas::Canvas;
 use microbit::hal::gpio::{Level, Output, Pin, PushPull};
-use microbit::hal::prelude::*;
+use microbit::hal::timer::Instance;
+use microbit::hal::{prelude::*, Timer};
+
+#[cfg(feature = "logging")]
+use rtt_target::rprintln;
 
 pub struct LedMatrixPins64x32<MODE> {
     pub r1: Pin<MODE>,
@@ -42,7 +46,12 @@ pub struct LedMatrixPins64x32<MODE> {
     pub oe: Pin<MODE>,
 }
 
-pub struct LedMatrix<const LINES: usize = 4, const WIDTH: usize = 64, const HEIGHT: usize = 32> {
+pub struct LedMatrix<
+    TIMER,
+    const LINES: usize = 4,
+    const WIDTH: usize = 64,
+    const HEIGHT: usize = 32,
+> {
     pub pin_r1: Pin<Output<PushPull>>,
     pub pin_g1: Pin<Output<PushPull>>,
     pub pin_b1: Pin<Output<PushPull>>,
@@ -53,10 +62,11 @@ pub struct LedMatrix<const LINES: usize = 4, const WIDTH: usize = 64, const HEIG
     pin_lat: Pin<Output<PushPull>>,
     pin_oe: Pin<Output<PushPull>>,
     line_ctrl: [Pin<Output<PushPull>>; LINES],
+    timer: Timer<TIMER>,
 }
 
-impl LedMatrix {
-    pub fn new<MODE>(pins: LedMatrixPins64x32<MODE>) -> LedMatrix {
+impl<TIMER> LedMatrix<TIMER> {
+    pub fn new<MODE>(pins: LedMatrixPins64x32<MODE>, timer: Timer<TIMER>) -> LedMatrix<TIMER> {
         LedMatrix {
             pin_r1: pins.r1.into_push_pull_output(Level::Low),
             pin_g1: pins.g1.into_push_pull_output(Level::Low),
@@ -73,15 +83,22 @@ impl LedMatrix {
                 pins.c.into_push_pull_output(Level::Low),
                 pins.d.into_push_pull_output(Level::Low),
             ],
+            timer,
         }
     }
 }
 
-impl<const LINES: usize, const WIDTH: usize, const HEIGHT: usize> LedMatrix<LINES, WIDTH, HEIGHT> {
+impl<TIMER, const LINES: usize, const WIDTH: usize, const HEIGHT: usize>
+    LedMatrix<TIMER, LINES, WIDTH, HEIGHT>
+where
+    TIMER: Instance,
+{
     pub fn draw_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>) {
         let half_height = HEIGHT / 2;
         let raw_canvas = canvas.as_ref();
+        let mut line_time_avg = 0_f32;
         for line_index in 0..half_height {
+            self.timer.start(u32::MAX);
             for col_index in 0..WIDTH {
                 let color_down = &raw_canvas[line_index][col_index];
                 let color_up = &raw_canvas[line_index + half_height][col_index];
@@ -120,11 +137,21 @@ impl<const LINES: usize, const WIDTH: usize, const HEIGHT: usize> LedMatrix<LINE
                 self.clock_color();
             }
             self.latch_to_line(line_index as u8);
+            let counter_delta = self.timer.read();
+            line_time_avg = line_time_avg * (line_index as f32 / (line_index + 1) as f32)
+                + counter_delta as f32 / ((line_index + 1) as f32);
+        }
+        // Wait one line cycle
+        self.timer.delay_us(line_time_avg as u32);
+        self.pin_oe.set_high().unwrap();
+        #[cfg(feature = "logging")]
+        {
+            rprintln!("Mean value {}", line_time_avg as u32);
         }
     }
 
     pub fn latch_to_line(&mut self, line: u8) {
-        self.pin_oe.set_high().unwrap();
+        // Here, OE is already set to "high" due to end of draw method // self.pin_oe.set_high().unwrap();
         let mline = line % 2_u8.pow(LINES as u32);
         for pin_idx in 0..self.line_ctrl.len() {
             let enable_pin = (mline & (1 << pin_idx)) != 0;
@@ -136,6 +163,7 @@ impl<const LINES: usize, const WIDTH: usize, const HEIGHT: usize> LedMatrix<LINE
         self.pin_lat.set_low().unwrap();
         self.pin_oe.set_low().unwrap();
     }
+
     pub fn clock_color(&mut self) {
         self.pin_clk.set_high().unwrap();
         self.pin_clk.set_low().unwrap();

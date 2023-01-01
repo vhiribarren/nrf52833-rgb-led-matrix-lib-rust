@@ -26,11 +26,12 @@ SOFTWARE.
 #![no_main]
 #![no_std]
 
+use cortex_m::prelude::_embedded_hal_blocking_delay_DelayUs;
 use cortex_m_rt::entry;
 
-use microbit::hal::gpio;
+use microbit::hal::timer::Timer;
+use microbit::hal::{gpio, Delay};
 use microbit_led_matrix::canvas::{Canvas, Color};
-use microbit_led_matrix::fonts::font5x7;
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 
 #[cfg(not(feature = "logging"))]
@@ -61,6 +62,8 @@ Correct order is:
     set OE to L
 */
 
+const MAX_DRAW_DELAY_MICROSEC: u32 = 10_000;
+
 #[entry]
 fn main() -> ! {
     #[cfg(feature = "logging")]
@@ -70,42 +73,37 @@ fn main() -> ! {
     }
 
     let peripherals = microbit::Peripherals::take().unwrap();
+
+    let timer = Timer::new(peripherals.TIMER0);
+    let mut delay = Delay::new(cortex_m::Peripherals::take().unwrap().SYST);
     let p0 = gpio::p0::Parts::new(peripherals.P0);
     let p1 = gpio::p1::Parts::new(peripherals.P1);
 
-    let mut m = LedMatrix::new(LedMatrixPins64x32 {
-        r1: p0.p0_02.into(),
-        g1: p0.p0_03.into(),
-        b1: p0.p0_04.into(),
-        r2: p0.p0_31.into(),
-        g2: p0.p0_28.into(),
-        b2: p0.p0_14.into(),
-        a: p1.p1_05.into(),
-        b: p0.p0_11.into(),
-        c: p0.p0_10.into(),
-        d: p0.p0_09.into(),
-        clk: p0.p0_30.into(),
-        lat: p0.p0_23.into(),
-        oe: p0.p0_12.into(),
-    });
+    let mut m = LedMatrix::new(
+        LedMatrixPins64x32 {
+            r1: p0.p0_02.into(),
+            g1: p0.p0_03.into(),
+            b1: p0.p0_04.into(),
+            r2: p0.p0_31.into(),
+            g2: p0.p0_28.into(),
+            b2: p0.p0_14.into(),
+            a: p1.p1_05.into(),
+            b: p0.p0_11.into(),
+            c: p0.p0_10.into(),
+            d: p0.p0_09.into(),
+            clk: p0.p0_30.into(),
+            lat: p0.p0_23.into(),
+            oe: p0.p0_12.into(),
+        },
+        timer,
+    );
 
     let mut canvas = Canvas::<64, 32>::new();
-    canvas.draw_stencil(0, 0, &font5x7::A, Color::RED);
-    canvas.draw_stencil(6, 0, &font5x7::B, Color::RED);
-    canvas.draw_stencil(12, 0, &font5x7::C, Color::RED);
-    canvas.draw_stencil(18, 0, &font5x7::H, Color::RED);
-    canvas.draw_stencil(24, 0, &font5x7::T, Color::RED);
-    canvas.draw_stencil(30, 0, &font5x7::U, Color::RED);
-    canvas.draw_stencil(36, 0, &font5x7::V, Color::RED);
-    canvas.draw_stencil(42, 0, &font5x7::A, Color::RED);
-    canvas.draw_stencil(48, 0, &font5x7::B, Color::RED);
-    canvas.draw_stencil(54, 0, &font5x7::C, Color::RED);
-    canvas.draw_stencil(60, 0, &font5x7::T, Color::RED);
-    canvas.draw_stencil(0, 8, &font5x7::A, Color::RED);
-    canvas.draw_stencil(0, 16, &font5x7::A, Color::RED);
-    canvas.draw_stencil(0, 24, &font5x7::A, Color::RED);
-    canvas.draw_stencil(0, 32, &font5x7::A, Color::RED);
+    canvas.draw_rectangle(0, 0, 64 / 3, 32, Color::BLUE);
+    canvas.draw_rectangle(64 / 3, 0, 64 / 3, 32, Color::WHITE);
+    canvas.draw_rectangle((2 * 64) / 3, 0, 64 / 3, 32, Color::RED);
     loop {
         m.draw_canvas(&canvas);
+        delay.delay_us(MAX_DRAW_DELAY_MICROSEC);
     }
 }
