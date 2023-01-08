@@ -46,50 +46,52 @@ pub struct LedMatrixPins64x32<MODE> {
     pub oe: Pin<MODE>,
 }
 
+const RGB_COUNT: usize = 3;
+
 pub struct LedMatrix<
     TIMER,
-    const LINES: usize = 4,
+    const LINECTRL_PIN_COUNT: usize = 4,
     const WIDTH: usize = 64,
     const HEIGHT: usize = 32,
 > {
-    pub pin_r1: Pin<Output<PushPull>>,
-    pub pin_g1: Pin<Output<PushPull>>,
-    pub pin_b1: Pin<Output<PushPull>>,
-    pub pin_r2: Pin<Output<PushPull>>,
-    pub pin_g2: Pin<Output<PushPull>>,
-    pub pin_b2: Pin<Output<PushPull>>,
+    top_colors: [Pin<Output<PushPull>>; RGB_COUNT],
+    bottom_colors: [Pin<Output<PushPull>>; RGB_COUNT],
     pin_clk: Pin<Output<PushPull>>,
     pin_lat: Pin<Output<PushPull>>,
     pin_oe: Pin<Output<PushPull>>,
-    line_ctrl: [Pin<Output<PushPull>>; LINES],
+    line_ctrl: [Pin<Output<PushPull>>; LINECTRL_PIN_COUNT],
     timer: Timer<TIMER>,
 }
 
 impl<TIMER> LedMatrix<TIMER> {
     pub fn new<MODE>(pins: LedMatrixPins64x32<MODE>, timer: Timer<TIMER>) -> LedMatrix<TIMER> {
         LedMatrix {
-            pin_r1: pins.r1.into_push_pull_output(Level::Low),
-            pin_g1: pins.g1.into_push_pull_output(Level::Low),
-            pin_b1: pins.b1.into_push_pull_output(Level::Low),
-            pin_r2: pins.r2.into_push_pull_output(Level::Low),
-            pin_g2: pins.g2.into_push_pull_output(Level::Low),
-            pin_b2: pins.b2.into_push_pull_output(Level::Low),
-            pin_clk: pins.clk.into_push_pull_output(Level::Low),
-            pin_lat: pins.lat.into_push_pull_output(Level::Low),
-            pin_oe: pins.oe.into_push_pull_output(Level::Low),
+            top_colors: [
+                pins.r1.into_push_pull_output(Level::Low),
+                pins.g1.into_push_pull_output(Level::Low),
+                pins.b1.into_push_pull_output(Level::Low),
+            ],
+            bottom_colors: [
+                pins.r2.into_push_pull_output(Level::Low),
+                pins.g2.into_push_pull_output(Level::Low),
+                pins.b2.into_push_pull_output(Level::Low),
+            ],
             line_ctrl: [
                 pins.a.into_push_pull_output(Level::Low),
                 pins.b.into_push_pull_output(Level::Low),
                 pins.c.into_push_pull_output(Level::Low),
                 pins.d.into_push_pull_output(Level::Low),
             ],
+            pin_clk: pins.clk.into_push_pull_output(Level::Low),
+            pin_lat: pins.lat.into_push_pull_output(Level::Low),
+            pin_oe: pins.oe.into_push_pull_output(Level::High),
             timer,
         }
     }
 }
 
-impl<TIMER, const LINES: usize, const WIDTH: usize, const HEIGHT: usize>
-    LedMatrix<TIMER, LINES, WIDTH, HEIGHT>
+impl<TIMER, const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
+    LedMatrix<TIMER, LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
 where
     TIMER: Instance,
 {
@@ -100,43 +102,23 @@ where
         for line_index in 0..half_height {
             self.timer.start(u32::MAX);
             for col_index in 0..WIDTH {
-                let color_down = &raw_canvas[line_index][col_index];
-                let color_up = &raw_canvas[line_index + half_height][col_index];
-                if color_down.r > 0 {
-                    self.pin_r1.set_high().unwrap();
-                } else {
-                    self.pin_r1.set_low().unwrap();
-                }
-                if color_up.r > 0 {
-                    self.pin_r2.set_high().unwrap();
-                } else {
-                    self.pin_r2.set_low().unwrap();
-                }
-
-                if color_down.g > 0 {
-                    self.pin_g1.set_high().unwrap();
-                } else {
-                    self.pin_g1.set_low().unwrap();
-                }
-                if color_up.g > 0 {
-                    self.pin_g2.set_high().unwrap();
-                } else {
-                    self.pin_g2.set_low().unwrap();
-                }
-
-                if color_down.b > 0 {
-                    self.pin_b1.set_high().unwrap();
-                } else {
-                    self.pin_b1.set_low().unwrap();
-                }
-                if color_up.b > 0 {
-                    self.pin_b2.set_high().unwrap();
-                } else {
-                    self.pin_b2.set_low().unwrap();
+                let color_top = &raw_canvas[line_index][col_index];
+                let color_bottom = &raw_canvas[line_index + half_height][col_index];
+                let color_chain = color_top.into_iter().chain(color_bottom.into_iter());
+                let pin_chain = self
+                    .top_colors
+                    .iter_mut()
+                    .chain(self.bottom_colors.iter_mut());
+                for (pin, color) in pin_chain.zip(color_chain) {
+                    if color > 0 {
+                        pin.set_high().unwrap();
+                    } else {
+                        pin.set_low().unwrap();
+                    }
                 }
                 self.clock_color();
             }
-            self.latch_to_line(line_index as u8);
+            self.latch_to_line(line_index);
             let counter_delta = self.timer.read();
             line_time_avg = line_time_avg * (line_index as f32 / (line_index + 1) as f32)
                 + counter_delta as f32 / ((line_index + 1) as f32);
@@ -150,9 +132,10 @@ where
         }
     }
 
-    pub fn latch_to_line(&mut self, line: u8) {
-        // Here, OE is already set to "high" due to end of draw method // self.pin_oe.set_high().unwrap();
-        let mline = line % 2_u8.pow(LINES as u32);
+    fn latch_to_line(&mut self, line: usize) {
+        // When starting here, OE should be set to "high": self.pin_oe.set_high().unwrap();
+        // It should be the case due to end of draw method, and due to init value of pins
+        let mline = line % 2_usize.pow(LINECTRL_PIN_COUNT as u32);
         for pin_idx in 0..self.line_ctrl.len() {
             let enable_pin = (mline & (1 << pin_idx)) != 0;
             self.line_ctrl[pin_idx]
@@ -164,7 +147,7 @@ where
         self.pin_oe.set_low().unwrap();
     }
 
-    pub fn clock_color(&mut self) {
+    fn clock_color(&mut self) {
         self.pin_clk.set_high().unwrap();
         self.pin_clk.set_low().unwrap();
     }

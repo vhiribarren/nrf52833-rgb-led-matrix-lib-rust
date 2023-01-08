@@ -25,25 +25,48 @@ SOFTWARE.
 use core::cmp::min;
 
 #[derive(Clone, Copy, PartialEq)]
-pub struct Color {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-}
+#[cfg_attr(feature = "logging", derive(Debug))]
+pub struct Color([u8; 3]);
 
 impl Color {
-    pub const WHITE: Color = Color { r: 1, g: 1, b: 1 };
-    pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
-    pub const BLUE: Color = Color { r: 0, g: 0, b: 1 };
-    pub const RED: Color = Color { r: 1, g: 0, b: 0 };
-    pub const YELLOW: Color = Color { r: 1, g: 1, b: 0 };
-    pub const GREEN: Color = Color { r: 0, g: 1, b: 0 };
-    pub const CYAN: Color = Color { r: 0, g: 1, b: 1 };
-    pub const MAGENTA: Color = Color { r: 1, g: 0, b: 1 };
+    pub const WHITE: Color = Color::new(255, 255, 255);
+    pub const BLACK: Color = Color::new(0, 0, 0);
+    pub const BLUE: Color = Color::new(0, 0, 255);
+    pub const RED: Color = Color::new(255, 0, 0);
+    pub const YELLOW: Color = Color::new(255, 255, 0);
+    pub const GREEN: Color = Color::new(0, 255, 0);
+    pub const CYAN: Color = Color::new(0, 255, 255);
+    pub const MAGENTA: Color = Color::new(255, 0, 255);
+
+    pub const fn new(r: u8, g: u8, b: u8) -> Self {
+        Color([r, g, b])
+    }
+
+    pub fn r(&self) -> u8 {
+        self.0[0]
+    }
+
+    pub fn g(&self) -> u8 {
+        self.0[1]
+    }
+
+    pub fn b(&self) -> u8 {
+        self.0[2]
+    }
+}
+
+impl IntoIterator for Color {
+    type Item = u8;
+
+    type IntoIter = core::array::IntoIter<u8, 3>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
 }
 
 #[derive(Clone)]
-pub struct Canvas<const WIDTH: usize = 64, const HEIGHT: usize = 32>([[Color; WIDTH]; HEIGHT]);
+pub struct Canvas<const WIDTH: usize, const HEIGHT: usize>([[Color; WIDTH]; HEIGHT]);
 
 impl Canvas<64, 32> {
     pub fn with_64x32() -> Self {
@@ -64,7 +87,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
     pub fn with_background_color(color: Color) -> Self {
         Canvas([[color; WIDTH]; HEIGHT])
     }
-    pub fn clear_with_color(&mut self, color: Color) -> &mut Canvas<WIDTH, HEIGHT> {
+    pub fn clear_with_color(&mut self, color: Color) -> &mut Self {
         for line in 0..HEIGHT {
             for col in 0..WIDTH {
                 self.0[line][col] = color;
@@ -79,7 +102,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         width: usize,
         height: usize,
         color: Color,
-    ) -> &mut Canvas<WIDTH, HEIGHT> {
+    ) -> &mut Self {
         let y_max = min(y + height, HEIGHT);
         let x_max = min(x + width, WIDTH);
         for y_pos in y..y_max {
@@ -89,7 +112,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         }
         self
     }
-    pub fn draw_pixel(&mut self, x: usize, y: usize, color: Color) -> &mut Canvas<WIDTH, HEIGHT> {
+    pub fn draw_pixel(&mut self, x: usize, y: usize, color: Color) -> &mut Self {
         if x < WIDTH && y < HEIGHT {
             self.0[y][x] = color;
         }
@@ -101,7 +124,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         y: usize,
         model: &[[u8; W]; H],
         color: Color,
-    ) -> &mut Canvas<WIDTH, HEIGHT> {
+    ) -> &mut Self {
         let y_max = min(y + H, HEIGHT);
         let x_max = min(x + W, WIDTH);
         for (model_y_pos, canvas_y_pos) in (y..y_max).enumerate() {
