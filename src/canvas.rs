@@ -45,6 +45,12 @@ impl Color {
 #[derive(Clone)]
 pub struct Canvas<const WIDTH: usize = 64, const HEIGHT: usize = 32>([[Color; WIDTH]; HEIGHT]);
 
+impl Canvas<64, 32> {
+    pub fn with_64x32() -> Self {
+        Canvas::<64, 32>::new()
+    }
+}
+
 impl<const WIDTH: usize, const HEIGHT: usize> Default for Canvas<WIDTH, HEIGHT> {
     fn default() -> Self {
         Self::new()

@@ -98,7 +98,7 @@ fn main() -> ! {
         timer,
     );
 
-    let mut canvas = Canvas::<64, 32>::new();
+    let mut canvas = Canvas::with_64x32();
     canvas.draw_rectangle(0, 0, 64 / 3, 32, Color::BLUE);
     canvas.draw_rectangle(64 / 3, 0, 64 / 3, 32, Color::WHITE);
     canvas.draw_rectangle((2 * 64) / 3, 0, 64 / 3, 32, Color::RED);
