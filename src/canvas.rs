@@ -24,6 +24,8 @@ SOFTWARE.
 
 use core::cmp::min;
 
+use crate::fonts::font5x7;
+
 #[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "logging", derive(Debug))]
 pub struct Color([u8; 3]);
@@ -62,6 +64,16 @@ impl IntoIterator for Color {
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+
+pub struct TextOptions {
+    pub interspace: usize,
+}
+
+impl Default for TextOptions {
+    fn default() -> Self {
+        Self { interspace: 1 }
     }
 }
 
@@ -136,6 +148,30 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
             }
         }
         self
+    }
+    pub fn draw_text_with_opts(
+        &mut self,
+        x: usize,
+        y: usize,
+        text: &str,
+        color: Color,
+        opts: TextOptions,
+    ) -> &mut Self {
+        for (idx, c) in text.chars().enumerate() {
+            let stencil = font5x7::stencil_for(c);
+            let stencil_width = stencil[0].len();
+            self.draw_stencil(
+                x + idx * (stencil_width + opts.interspace),
+                y,
+                stencil,
+                color,
+            );
+        }
+        self
+    }
+
+    pub fn draw_text(&mut self, x: usize, y: usize, text: &str, color: Color) -> &mut Self {
+        self.draw_text_with_opts(x, y, text, color, Default::default())
     }
 }
 

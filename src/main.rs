@@ -32,6 +32,7 @@ use cortex_m_rt::entry;
 use microbit::hal::timer::Timer;
 use microbit::hal::{gpio, Delay};
 use microbit_led_matrix::canvas::{Canvas, Color};
+use microbit_led_matrix::fonts::font5x7;
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 
 #[cfg(not(feature = "logging"))]
@@ -62,7 +63,7 @@ Correct order is:
     set OE to L
 */
 
-const MAX_DRAW_DELAY_MICROSEC: u32 = 10_000;
+const MAX_DRAW_DELAY_MICROSEC: u32 = 5_000;
 
 #[entry]
 fn main() -> ! {
@@ -99,9 +100,9 @@ fn main() -> ! {
     );
 
     let mut canvas = Canvas::with_64x32();
-    canvas.draw_rectangle(0, 0, 64 / 3, 32, Color::BLUE);
-    canvas.draw_rectangle(64 / 3, 0, 64 / 3, 32, Color::WHITE);
-    canvas.draw_rectangle((2 * 64) / 3, 0, 64 / 3, 32, Color::RED);
+    canvas.draw_rectangle(0, 0, 32, 32, Color::CYAN);
+    canvas.draw_text(1, 1, "HELLO", Color::RED);
+    canvas.draw_stencil(0, 0, &font5x7::A, Color::RED);
     loop {
         m.draw_canvas(&canvas);
         delay.delay_us(MAX_DRAW_DELAY_MICROSEC);
