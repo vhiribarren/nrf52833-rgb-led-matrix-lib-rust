@@ -123,7 +123,7 @@ where
             line_time_avg = line_time_avg * (line_index as f32 / (line_index + 1) as f32)
                 + counter_delta as f32 / ((line_index + 1) as f32);
         }
-        // Wait one line cycle
+        // Wait one line cycle, and simulate a end of latch_to_line
         self.timer.delay_us(line_time_avg as u32);
         self.pin_oe.set_high().unwrap();
         #[cfg(feature = "logging")]
@@ -133,8 +133,7 @@ where
     }
 
     fn latch_to_line(&mut self, line: usize) {
-        // When starting here, OE should be set to "high": self.pin_oe.set_high().unwrap();
-        // It should be the case due to end of draw method, and due to init value of pins
+        self.pin_oe.set_high().unwrap();
         let mline = line % 2_usize.pow(LINECTRL_PIN_COUNT as u32);
         for pin_idx in 0..self.line_ctrl.len() {
             let enable_pin = (mline & (1 << pin_idx)) != 0;
