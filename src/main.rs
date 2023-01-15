@@ -28,7 +28,7 @@ SOFTWARE.
 
 use core::cell::RefCell;
 
-use cortex_m::interrupt::{InterruptNumber, Mutex};
+use cortex_m::interrupt::Mutex;
 use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 
@@ -77,16 +77,15 @@ static DRAW_TIMER: Mutex<RefCell<Option<Timer<TIMER1>>>> = Mutex::new(RefCell::n
 static LED_MATRIX: Mutex<RefCell<Option<LedMatrix<TIMER0, 4, 64, 32>>>> =
     Mutex::new(RefCell::new(None));
 
-fn enable_interrupts<const S: usize, I>(interrupts: [I; S])
-where
-    I: InterruptNumber,
-{
-    #[allow(unsafe_code)]
-    unsafe {
-        for int in interrupts {
-            microbit::pac::NVIC::unmask(int);
+macro_rules! enable_interrupts {
+    (  $( $interrupt_nb:path ), * ) => {
+        #[allow(unsafe_code)]
+        unsafe {
+        $(
+            microbit::pac::NVIC::unmask($interrupt_nb);
+        )*
         }
-    }
+    };
 }
 
 #[entry]
@@ -97,7 +96,7 @@ fn main() -> ! {
         rprintln!("Logging active");
     }
 
-    enable_interrupts([interrupt::TIMER0, interrupt::TIMER1]);
+    enable_interrupts!(interrupt::TIMER0, interrupt::TIMER1);
 
     let peripherals = microbit::Peripherals::take().unwrap();
 
