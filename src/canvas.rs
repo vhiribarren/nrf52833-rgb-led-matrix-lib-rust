@@ -81,7 +81,7 @@ impl Default for TextOptions {
 pub struct Canvas<const WIDTH: usize, const HEIGHT: usize>([[Color; WIDTH]; HEIGHT]);
 
 impl Canvas<64, 32> {
-    pub fn with_64x32() -> Self {
+    pub const fn with_64x32() -> Self {
         Canvas::<64, 32>::new()
     }
 }
@@ -93,7 +93,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Default for Canvas<WIDTH, HEIGHT> 
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Canvas([[Color::BLACK; WIDTH]; HEIGHT])
     }
     pub fn with_background_color(color: Color) -> Self {

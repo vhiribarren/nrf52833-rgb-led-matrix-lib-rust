@@ -26,11 +26,16 @@ SOFTWARE.
 #![no_main]
 #![no_std]
 
-use cortex_m::prelude::_embedded_hal_blocking_delay_DelayUs;
+use core::cell::RefCell;
+
+use cortex_m::interrupt::{InterruptNumber, Mutex};
+use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 
+use microbit::hal::pac::interrupt;
 use microbit::hal::timer::Timer;
 use microbit::hal::{gpio, Delay};
+use microbit::pac::{TIMER0, TIMER1};
 use microbit_led_matrix::canvas::{Canvas, Color};
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 
@@ -63,6 +68,26 @@ Correct order is:
 */
 
 const MAX_DRAW_DELAY_MICROSEC: u32 = 5_000;
+const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
+
+static BACK_CANVAS: Mutex<RefCell<Canvas<64, 32>>> = Mutex::new(RefCell::new(Canvas::with_64x32()));
+static FRONT_CANVAS: Mutex<RefCell<Canvas<64, 32>>> =
+    Mutex::new(RefCell::new(Canvas::with_64x32()));
+static DRAW_TIMER: Mutex<RefCell<Option<Timer<TIMER1>>>> = Mutex::new(RefCell::new(None));
+static LED_MATRIX: Mutex<RefCell<Option<LedMatrix<TIMER0, 4, 64, 32>>>> =
+    Mutex::new(RefCell::new(None));
+
+fn enable_interrupts<const S: usize, I>(interrupts: [I; S])
+where
+    I: InterruptNumber,
+{
+    #[allow(unsafe_code)]
+    unsafe {
+        for int in interrupts {
+            microbit::pac::NVIC::unmask(int);
+        }
+    }
+}
 
 #[entry]
 fn main() -> ! {
@@ -72,6 +97,8 @@ fn main() -> ! {
         rprintln!("Logging active");
     }
 
+    enable_interrupts([interrupt::TIMER0, interrupt::TIMER1]);
+
     let peripherals = microbit::Peripherals::take().unwrap();
 
     let timer = Timer::new(peripherals.TIMER0);
@@ -79,7 +106,7 @@ fn main() -> ! {
     let p0 = gpio::p0::Parts::new(peripherals.P0);
     let p1 = gpio::p1::Parts::new(peripherals.P1);
 
-    let mut m = LedMatrix::new(
+    let m = LedMatrix::new(
         LedMatrixPins64x32 {
             r1: p0.p0_02.into(),
             g1: p0.p0_03.into(),
@@ -98,11 +125,51 @@ fn main() -> ! {
         timer,
     );
 
-    let mut canvas = Canvas::with_64x32();
+    cortex_m::interrupt::free(|cs| {
+        let mut borrowed_draw_canvas = BACK_CANVAS.borrow(cs).borrow_mut();
+        let mut borrowed_display_canvas = FRONT_CANVAS.borrow(cs).borrow_mut();
+        borrowed_draw_canvas.draw_text(1, 1, "HELLO", Color::RED);
+        borrowed_display_canvas.draw_text(1, 1, "WORLD", Color::RED);
+    });
 
-    canvas.draw_text(1, 1, "HELLO", Color::RED);
+    let mut display_timer = Timer::new(peripherals.TIMER1);
+    display_timer.enable_interrupt();
+    display_timer.start(MAX_DRAW_DELAY_MICROSEC);
+
+    cortex_m::interrupt::free(|cs| {
+        DRAW_TIMER.borrow(cs).replace(Some(display_timer));
+        LED_MATRIX.borrow(cs).replace(Some(m));
+    });
+    #[cfg(feature = "logging")]
+    rprintln!("Start loop!");
     loop {
-        m.draw_canvas(&canvas);
-        delay.delay_us(MAX_DRAW_DELAY_MICROSEC);
+        delay.delay_us(CANVAS_SWITCH_DELAY_MICROSEC);
+        #[cfg(feature = "logging")]
+        rprintln!("Switch!");
+        cortex_m::interrupt::free(|cs| {
+            let mut borrowed_back_canvas = BACK_CANVAS.borrow(cs).borrow_mut();
+            let mut borrowed_front_canvas = FRONT_CANVAS.borrow(cs).borrow_mut();
+            core::mem::swap(
+                borrowed_back_canvas.as_mut(),
+                borrowed_front_canvas.as_mut(),
+            )
+        });
     }
+}
+
+#[interrupt]
+fn TIMER1() {
+    cortex_m::interrupt::free(|cs| {
+        let mut borrowed_led_matrix = LED_MATRIX.borrow(cs).borrow_mut();
+        let led_matrix = borrowed_led_matrix.as_mut().unwrap();
+        let borrowed_canvas = FRONT_CANVAS.borrow(cs).borrow();
+        let mut borrowed_timer = DRAW_TIMER.borrow(cs).borrow_mut();
+        let timer = borrowed_timer.as_mut().unwrap();
+
+        led_matrix.draw_canvas(&*borrowed_canvas);
+
+        timer.disable_interrupt();
+        timer.start(MAX_DRAW_DELAY_MICROSEC);
+        timer.enable_interrupt();
+    });
 }

@@ -128,7 +128,8 @@ where
         self.pin_oe.set_high().unwrap();
         #[cfg(feature = "logging")]
         {
-            rprintln!("Mean value {}", line_time_avg as u32);
+            // TODO: should print that only every n times, and should avoid the cfg marco
+            //rprintln!("Mean value {}", line_time_avg as u32);
         }
     }
 
