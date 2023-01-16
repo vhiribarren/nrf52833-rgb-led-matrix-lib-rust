@@ -22,11 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+use core::cell::RefCell;
+
 use crate::canvas::Canvas;
+use cortex_m::interrupt::Mutex;
 use microbit::hal::gpio::{Level, Output, Pin, PushPull};
 use microbit::hal::timer::Instance;
 use microbit::hal::{prelude::*, Timer};
 
+use microbit::hal::pac::interrupt;
+use microbit::pac::{TIMER0, TIMER1};
 #[cfg(feature = "logging")]
 use rtt_target::rprintln;
 
@@ -151,4 +156,76 @@ where
         self.pin_clk.set_high().unwrap();
         self.pin_clk.set_low().unwrap();
     }
+}
+
+const MAX_DRAW_DELAY_MICROSEC: u32 = 10_000;
+
+static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<TIMER0, 4, 64, 32>>>> =
+    Mutex::new(RefCell::new(None));
+
+pub struct ScheduledLedMatrix<
+    TIMER,
+    const LINECTRL_PIN_COUNT: usize = 4,
+    const WIDTH: usize = 64,
+    const HEIGHT: usize = 32,
+> {
+    front_canvas: Canvas<WIDTH, HEIGHT>,
+    led_matrix: LedMatrix<TIMER, LINECTRL_PIN_COUNT, WIDTH, HEIGHT>,
+    timer: Timer<TIMER1>,
+}
+
+impl<TIMER, const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
+    ScheduledLedMatrix<TIMER, LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
+where
+    TIMER: Instance,
+{
+    pub fn new(
+        led_matrix: LedMatrix<TIMER0, 4, 64, 32>,
+        timer: Timer<TIMER1>,
+    ) -> &'static Mutex<RefCell<Option<ScheduledLedMatrix<TIMER0, 4, 64, 32>>>> {
+        let scheduled_let_matrix = ScheduledLedMatrix {
+            led_matrix,
+            front_canvas: Default::default(),
+            timer,
+        };
+        cortex_m::interrupt::free(|cs| {
+            SCHEDULED_LED_MATRIX
+                .borrow(cs)
+                .replace(Some(scheduled_let_matrix));
+        });
+        &SCHEDULED_LED_MATRIX
+    }
+
+    // fn start_rendering_loop(self) -> Self<started>
+    pub fn start_rendering_loop(&mut self) {
+        self.schedule_next_int()
+    }
+
+    pub fn swap_canvas(&mut self, canvas: &mut Canvas<WIDTH, HEIGHT>) {
+        core::mem::swap(&mut self.front_canvas, canvas);
+    }
+
+    pub fn copy_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>) {
+        self.front_canvas = canvas.clone();
+    }
+
+    fn refresh_display(&mut self) {
+        self.led_matrix.draw_canvas(&self.front_canvas);
+    }
+
+    fn schedule_next_int(&mut self) {
+        self.timer.disable_interrupt();
+        self.timer.start(MAX_DRAW_DELAY_MICROSEC);
+        self.timer.enable_interrupt();
+    }
+}
+
+#[interrupt]
+fn TIMER1() {
+    cortex_m::interrupt::free(|cs| {
+        let mut borrowed_led_matrix = SCHEDULED_LED_MATRIX.borrow(cs).borrow_mut();
+        let mut schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
+        schedule_led_matrix.refresh_display();
+        schedule_led_matrix.schedule_next_int();
+    });
 }

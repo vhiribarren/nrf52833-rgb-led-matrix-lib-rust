@@ -37,7 +37,7 @@ use microbit::hal::timer::Timer;
 use microbit::hal::{gpio, Delay};
 use microbit::pac::{TIMER0, TIMER1};
 use microbit_led_matrix::canvas::{Canvas, Color};
-use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
+use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32, ScheduledLedMatrix};
 
 #[cfg(not(feature = "logging"))]
 use panic_halt as _;
@@ -67,15 +67,7 @@ Correct order is:
     set OE to L
 */
 
-const MAX_DRAW_DELAY_MICROSEC: u32 = 5_000;
 const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
-
-static BACK_CANVAS: Mutex<RefCell<Canvas<64, 32>>> = Mutex::new(RefCell::new(Canvas::with_64x32()));
-static FRONT_CANVAS: Mutex<RefCell<Canvas<64, 32>>> =
-    Mutex::new(RefCell::new(Canvas::with_64x32()));
-static DRAW_TIMER: Mutex<RefCell<Option<Timer<TIMER1>>>> = Mutex::new(RefCell::new(None));
-static LED_MATRIX: Mutex<RefCell<Option<LedMatrix<TIMER0, 4, 64, 32>>>> =
-    Mutex::new(RefCell::new(None));
 
 macro_rules! enable_interrupts {
     (  $( $interrupt_nb:path ), * ) => {
@@ -124,21 +116,23 @@ fn main() -> ! {
         timer,
     );
 
-    cortex_m::interrupt::free(|cs| {
-        let mut borrowed_draw_canvas = BACK_CANVAS.borrow(cs).borrow_mut();
-        let mut borrowed_display_canvas = FRONT_CANVAS.borrow(cs).borrow_mut();
-        borrowed_draw_canvas.draw_text(1, 1, "HELLO", Color::RED);
-        borrowed_display_canvas.draw_text(1, 1, "WORLD", Color::RED);
-    });
+    let mut canvas_1 = Canvas::with_64x32();
+    canvas_1.draw_text(1, 1, "HELLO", Color::RED);
+    let mut canvas_2 = Canvas::with_64x32();
+    canvas_2.draw_text(1, 1, "WORLD", Color::RED);
 
-    let mut display_timer = Timer::new(peripherals.TIMER1);
-    display_timer.enable_interrupt();
-    display_timer.start(MAX_DRAW_DELAY_MICROSEC);
+    let scheduled_let_matrix =
+        ScheduledLedMatrix::<TIMER0, 4, 64, 32>::new(m, Timer::new(peripherals.TIMER1));
 
     cortex_m::interrupt::free(|cs| {
-        DRAW_TIMER.borrow(cs).replace(Some(display_timer));
-        LED_MATRIX.borrow(cs).replace(Some(m));
+        let mut borrowed_scheduled_led_matrix = scheduled_let_matrix.borrow(cs).borrow_mut();
+        let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
+        led_matrix.start_rendering_loop();
+        led_matrix.copy_canvas(&canvas_1);
     });
+
+    let next_canvas = &mut canvas_2;
+
     #[cfg(feature = "logging")]
     rprintln!("Start loop!");
     loop {
@@ -146,29 +140,9 @@ fn main() -> ! {
         #[cfg(feature = "logging")]
         rprintln!("Switch!");
         cortex_m::interrupt::free(|cs| {
-            let mut borrowed_back_canvas = BACK_CANVAS.borrow(cs).borrow_mut();
-            let mut borrowed_front_canvas = FRONT_CANVAS.borrow(cs).borrow_mut();
-            core::mem::swap(
-                borrowed_back_canvas.as_mut(),
-                borrowed_front_canvas.as_mut(),
-            )
+            let mut borrowed_scheduled_led_matrix = scheduled_let_matrix.borrow(cs).borrow_mut();
+            let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
+            led_matrix.swap_canvas(next_canvas);
         });
     }
-}
-
-#[interrupt]
-fn TIMER1() {
-    cortex_m::interrupt::free(|cs| {
-        let mut borrowed_led_matrix = LED_MATRIX.borrow(cs).borrow_mut();
-        let led_matrix = borrowed_led_matrix.as_mut().unwrap();
-        let borrowed_canvas = FRONT_CANVAS.borrow(cs).borrow();
-        let mut borrowed_timer = DRAW_TIMER.borrow(cs).borrow_mut();
-        let timer = borrowed_timer.as_mut().unwrap();
-
-        led_matrix.draw_canvas(&*borrowed_canvas);
-
-        timer.disable_interrupt();
-        timer.start(MAX_DRAW_DELAY_MICROSEC);
-        timer.enable_interrupt();
-    });
 }
