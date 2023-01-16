@@ -224,7 +224,7 @@ where
 fn TIMER1() {
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_led_matrix = SCHEDULED_LED_MATRIX.borrow(cs).borrow_mut();
-        let mut schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
+        let schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
         schedule_led_matrix.refresh_display();
         schedule_led_matrix.schedule_next_int();
     });

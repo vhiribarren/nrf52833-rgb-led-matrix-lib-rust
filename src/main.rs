@@ -26,16 +26,13 @@ SOFTWARE.
 #![no_main]
 #![no_std]
 
-use core::cell::RefCell;
-
-use cortex_m::interrupt::Mutex;
 use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 
 use microbit::hal::pac::interrupt;
 use microbit::hal::timer::Timer;
 use microbit::hal::{gpio, Delay};
-use microbit::pac::{TIMER0, TIMER1};
+use microbit::pac::TIMER0;
 use microbit_led_matrix::canvas::{Canvas, Color};
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32, ScheduledLedMatrix};
 
@@ -91,9 +88,10 @@ fn main() -> ! {
     enable_interrupts!(interrupt::TIMER0, interrupt::TIMER1);
 
     let peripherals = microbit::Peripherals::take().unwrap();
+    let core_periphs = microbit::pac::CorePeripherals::take().unwrap();
 
     let timer = Timer::new(peripherals.TIMER0);
-    let mut delay = Delay::new(cortex_m::Peripherals::take().unwrap().SYST);
+    let mut delay = Delay::new(core_periphs.SYST);
     let p0 = gpio::p0::Parts::new(peripherals.P0);
     let p1 = gpio::p1::Parts::new(peripherals.P1);
 
@@ -116,13 +114,13 @@ fn main() -> ! {
         timer,
     );
 
+    let scheduled_let_matrix =
+        ScheduledLedMatrix::<TIMER0, 4, 64, 32>::new(m, Timer::new(peripherals.TIMER1));
+
     let mut canvas_1 = Canvas::with_64x32();
     canvas_1.draw_text(1, 1, "HELLO", Color::RED);
     let mut canvas_2 = Canvas::with_64x32();
     canvas_2.draw_text(1, 1, "WORLD", Color::RED);
-
-    let scheduled_let_matrix =
-        ScheduledLedMatrix::<TIMER0, 4, 64, 32>::new(m, Timer::new(peripherals.TIMER1));
 
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_scheduled_led_matrix = scheduled_let_matrix.borrow(cs).borrow_mut();
