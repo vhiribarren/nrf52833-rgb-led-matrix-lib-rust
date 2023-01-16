@@ -10,7 +10,8 @@ To deploy, you must set up the tools described in the Rust [Discovery Book]. Not
 - Arm GCC toolchain
 - The Rust/LLVM target `thumbv7em-none-eabihf` for micro:bit v2
 
-**This project is already configured to be specifically deployed on the micro:bit v2.**
+**This project is already configured to be specifically deployed on the micro:bit v2.
+The memory map is notably prepared for the nrf52833 chip.**
 
 Once they are installed:
 
