@@ -35,6 +35,7 @@ use microbit::hal::{gpio, Delay};
 use microbit::pac::TIMER0;
 use microbit_led_matrix::canvas::{Canvas, Color};
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32, ScheduledLedMatrix};
+use microbit_led_matrix::{enable_interrupts, log};
 
 #[cfg(not(feature = "logging"))]
 use panic_halt as _;
@@ -43,7 +44,7 @@ use panic_halt as _;
 use panic_rtt_target as _;
 
 #[cfg(feature = "logging")]
-use rtt_target::{rprintln, rtt_init_print};
+use rtt_target::rtt_init_print;
 
 /*
 If there are not regular switch between two elements of A, B, C or D, the panel shutdown.
@@ -66,24 +67,12 @@ Correct order is:
 
 const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
 
-macro_rules! enable_interrupts {
-    (  $( $interrupt_nb:path ), * ) => {
-        #[allow(unsafe_code)]
-        unsafe {
-        $(
-            microbit::pac::NVIC::unmask($interrupt_nb);
-        )*
-        }
-    };
-}
-
 #[entry]
 fn main() -> ! {
     #[cfg(feature = "logging")]
-    {
-        rtt_init_print!();
-        rprintln!("Logging active");
-    }
+    rtt_init_print!();
+
+    log!("Logging active");
 
     enable_interrupts!(interrupt::TIMER0, interrupt::TIMER1);
 
@@ -131,12 +120,10 @@ fn main() -> ! {
 
     let next_canvas = &mut canvas_2;
 
-    #[cfg(feature = "logging")]
-    rprintln!("Start loop!");
+    log!("Start loop!");
     loop {
         delay.delay_us(CANVAS_SWITCH_DELAY_MICROSEC);
-        #[cfg(feature = "logging")]
-        rprintln!("Switch!");
+        log!("Switch!");
         cortex_m::interrupt::free(|cs| {
             let mut borrowed_scheduled_led_matrix = scheduled_let_matrix.borrow(cs).borrow_mut();
             let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();

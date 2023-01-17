@@ -32,8 +32,6 @@ use microbit::hal::{prelude::*, Timer};
 
 use microbit::hal::pac::interrupt;
 use microbit::pac::{TIMER0, TIMER1};
-#[cfg(feature = "logging")]
-use rtt_target::rprintln;
 
 pub struct LedMatrixPins64x32<MODE> {
     pub r1: Pin<MODE>,

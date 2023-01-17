@@ -28,3 +28,23 @@ SOFTWARE.
 pub mod canvas;
 pub mod fonts;
 pub mod ledmatrix;
+
+#[macro_export]
+macro_rules! enable_interrupts {
+    (  $( $interrupt_nb:path ), * ) => {
+        #[allow(unsafe_code)]
+        unsafe {
+        $(
+            microbit::pac::NVIC::unmask($interrupt_nb);
+        )*
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! log {
+    ($($x:tt)*) => {
+        #[cfg(feature = "logging")]
+        rtt_target::rprintln!($($x)*);
+    };
+}

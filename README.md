@@ -51,6 +51,8 @@ Some additional related resources:
 
 - I have issues in writting some unit tests, with the message `can't find crate
   for 'test'`. Possibly related to the use of `no_std` target.
+- Issues in using `defmt` for logging, I have tildes as output. For now, directly
+  using rtt with some macro when features `logging` is enabled
 
 
 ## License
