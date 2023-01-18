@@ -25,6 +25,7 @@ SOFTWARE.
 use core::cell::RefCell;
 
 use crate::canvas::Canvas;
+use crate::log;
 use cortex_m::interrupt::Mutex;
 use microbit::hal::gpio::{Level, Output, Pin, PushPull};
 use microbit::hal::timer::Instance;
@@ -52,7 +53,6 @@ pub struct LedMatrixPins64x32<MODE> {
 const RGB_COUNT: usize = 3;
 
 pub struct LedMatrix<
-    TIMER,
     const LINECTRL_PIN_COUNT: usize = 4,
     const WIDTH: usize = 64,
     const HEIGHT: usize = 32,
@@ -63,11 +63,10 @@ pub struct LedMatrix<
     pin_lat: Pin<Output<PushPull>>,
     pin_oe: Pin<Output<PushPull>>,
     line_ctrl: [Pin<Output<PushPull>>; LINECTRL_PIN_COUNT],
-    timer: Timer<TIMER>,
 }
 
-impl<TIMER> LedMatrix<TIMER> {
-    pub fn new<MODE>(pins: LedMatrixPins64x32<MODE>, timer: Timer<TIMER>) -> LedMatrix<TIMER> {
+impl LedMatrix {
+    pub fn new<MODE>(pins: LedMatrixPins64x32<MODE>) -> LedMatrix {
         LedMatrix {
             top_colors: [
                 pins.r1.into_push_pull_output(Level::Low),
@@ -88,22 +87,34 @@ impl<TIMER> LedMatrix<TIMER> {
             pin_clk: pins.clk.into_push_pull_output(Level::Low),
             pin_lat: pins.lat.into_push_pull_output(Level::Low),
             pin_oe: pins.oe.into_push_pull_output(Level::High),
-            timer,
         }
     }
 }
 
-impl<TIMER, const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
-    LedMatrix<TIMER, LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
-where
-    TIMER: Instance,
+impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
+    LedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
 {
     pub fn draw_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>) {
+        // Here, the usage of the TIMER0 is completely fake, it is just to have the right type when using None
+        // Is it possible to have something less far-fetched?
+        // Implmenting a dummy struct to reference its type seems not possible since microbit::hal::timer::Instance is a sealed trait.
+        self.draw_canvas_with_delay_buffer(canvas, None::<&mut Timer<TIMER0>>);
+    }
+
+    pub fn draw_canvas_with_delay_buffer<TIMER>(
+        &mut self,
+        canvas: &Canvas<WIDTH, HEIGHT>,
+        mut timer: Option<&mut Timer<TIMER>>,
+    ) where
+        TIMER: Instance,
+    {
         let half_height = HEIGHT / 2;
         let raw_canvas = canvas.as_ref();
         let mut line_time_avg = 0_f32;
         for line_index in 0..half_height {
-            self.timer.start(u32::MAX);
+            if let Some(unwrapped_timer) = &mut timer {
+                unwrapped_timer.start(u32::MAX);
+            }
             for col_index in 0..WIDTH {
                 let color_top = &raw_canvas[line_index][col_index];
                 let color_bottom = &raw_canvas[line_index + half_height][col_index];
@@ -122,18 +133,20 @@ where
                 self.clock_color();
             }
             self.latch_to_line(line_index);
-            let counter_delta = self.timer.read();
-            line_time_avg = line_time_avg * (line_index as f32 / (line_index + 1) as f32)
-                + counter_delta as f32 / ((line_index + 1) as f32);
+            if let Some(unwrapped_timer) = &mut timer {
+                let counter_delta = unwrapped_timer.read();
+                line_time_avg = line_time_avg * (line_index as f32 / (line_index + 1) as f32)
+                    + counter_delta as f32 / ((line_index + 1) as f32);
+            }
         }
         // Wait one line cycle, and simulate a end of latch_to_line
-        self.timer.delay_us(line_time_avg as u32);
-        self.pin_oe.set_high().unwrap();
-        #[cfg(feature = "logging")]
-        {
-            // TODO: should print that only every n times, and should avoid the cfg marco
-            //rprintln!("Mean value {}", line_time_avg as u32);
+        if let Some(unwrapped_timer) = &mut timer {
+            unwrapped_timer.delay_us(line_time_avg as u32);
+            self.pin_oe.set_high().unwrap();
         }
+
+        // TODO: should print that only every n times, and should avoid the cfg marco
+        //log!("Mean value {}", line_time_avg as u32);
     }
 
     fn latch_to_line(&mut self, line: usize) {
@@ -158,29 +171,26 @@ where
 
 const MAX_DRAW_DELAY_MICROSEC: u32 = 10_000;
 
-static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<TIMER0, 4, 64, 32>>>> =
+static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> =
     Mutex::new(RefCell::new(None));
 
 pub struct ScheduledLedMatrix<
-    TIMER,
     const LINECTRL_PIN_COUNT: usize = 4,
     const WIDTH: usize = 64,
     const HEIGHT: usize = 32,
 > {
     front_canvas: Canvas<WIDTH, HEIGHT>,
-    led_matrix: LedMatrix<TIMER, LINECTRL_PIN_COUNT, WIDTH, HEIGHT>,
+    led_matrix: LedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>,
     timer: Timer<TIMER1>,
 }
 
-impl<TIMER, const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
-    ScheduledLedMatrix<TIMER, LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
-where
-    TIMER: Instance,
+impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
+    ScheduledLedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
 {
     pub fn new(
-        led_matrix: LedMatrix<TIMER0, 4, 64, 32>,
+        led_matrix: LedMatrix<4, 64, 32>,
         timer: Timer<TIMER1>,
-    ) -> &'static Mutex<RefCell<Option<ScheduledLedMatrix<TIMER0, 4, 64, 32>>>> {
+    ) -> &'static Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> {
         let scheduled_let_matrix = ScheduledLedMatrix {
             led_matrix,
             front_canvas: Default::default(),
@@ -196,7 +206,8 @@ where
 
     // fn start_rendering_loop(self) -> Self<started>
     pub fn start_rendering_loop(&mut self) {
-        self.schedule_next_int()
+        log!("Start rendering loop");
+        self.schedule_next_interrupt();
     }
 
     pub fn swap_canvas(&mut self, canvas: &mut Canvas<WIDTH, HEIGHT>) {
@@ -207,12 +218,16 @@ where
         self.front_canvas = canvas.clone();
     }
 
-    fn refresh_display(&mut self) {
-        self.led_matrix.draw_canvas(&self.front_canvas);
+    pub fn ack_interrupt(&mut self) {
+        self.timer.disable_interrupt();
     }
 
-    fn schedule_next_int(&mut self) {
-        self.timer.disable_interrupt();
+    fn refresh_display(&mut self) {
+        self.led_matrix
+            .draw_canvas_with_delay_buffer(&self.front_canvas, Some(&mut self.timer));
+    }
+
+    fn schedule_next_interrupt(&mut self) {
         self.timer.start(MAX_DRAW_DELAY_MICROSEC);
         self.timer.enable_interrupt();
     }
@@ -223,7 +238,8 @@ fn TIMER1() {
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_led_matrix = SCHEDULED_LED_MATRIX.borrow(cs).borrow_mut();
         let schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
+        schedule_led_matrix.ack_interrupt();
         schedule_led_matrix.refresh_display();
-        schedule_led_matrix.schedule_next_int();
+        schedule_led_matrix.schedule_next_interrupt();
     });
 }

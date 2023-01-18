@@ -32,7 +32,6 @@ use cortex_m_rt::entry;
 use microbit::hal::pac::interrupt;
 use microbit::hal::timer::Timer;
 use microbit::hal::{gpio, Delay};
-use microbit::pac::TIMER0;
 use microbit_led_matrix::canvas::{Canvas, Color};
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32, ScheduledLedMatrix};
 use microbit_led_matrix::{enable_interrupts, log};
@@ -79,32 +78,28 @@ fn main() -> ! {
     let peripherals = microbit::Peripherals::take().unwrap();
     let core_periphs = microbit::pac::CorePeripherals::take().unwrap();
 
-    let timer = Timer::new(peripherals.TIMER0);
     let mut delay = Delay::new(core_periphs.SYST);
     let p0 = gpio::p0::Parts::new(peripherals.P0);
     let p1 = gpio::p1::Parts::new(peripherals.P1);
 
-    let m = LedMatrix::new(
-        LedMatrixPins64x32 {
-            r1: p0.p0_02.into(),
-            g1: p0.p0_03.into(),
-            b1: p0.p0_04.into(),
-            r2: p0.p0_31.into(),
-            g2: p0.p0_28.into(),
-            b2: p0.p0_14.into(),
-            a: p1.p1_05.into(),
-            b: p0.p0_11.into(),
-            c: p0.p0_10.into(),
-            d: p0.p0_09.into(),
-            clk: p0.p0_30.into(),
-            lat: p0.p0_23.into(),
-            oe: p0.p0_12.into(),
-        },
-        timer,
-    );
+    let m = LedMatrix::new(LedMatrixPins64x32 {
+        r1: p0.p0_02.into(),
+        g1: p0.p0_03.into(),
+        b1: p0.p0_04.into(),
+        r2: p0.p0_31.into(),
+        g2: p0.p0_28.into(),
+        b2: p0.p0_14.into(),
+        a: p1.p1_05.into(),
+        b: p0.p0_11.into(),
+        c: p0.p0_10.into(),
+        d: p0.p0_09.into(),
+        clk: p0.p0_30.into(),
+        lat: p0.p0_23.into(),
+        oe: p0.p0_12.into(),
+    });
 
     let scheduled_let_matrix =
-        ScheduledLedMatrix::<TIMER0, 4, 64, 32>::new(m, Timer::new(peripherals.TIMER1));
+        ScheduledLedMatrix::<4, 64, 32>::new(m, Timer::new(peripherals.TIMER1));
 
     let mut canvas_1 = Canvas::with_64x32();
     canvas_1.draw_text(1, 1, "HELLO", Color::RED);
