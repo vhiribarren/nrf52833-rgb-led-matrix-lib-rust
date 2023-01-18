@@ -57,9 +57,9 @@ fn main() -> ! {
 
     let mut canvas = Canvas::<64, 32>::new();
 
-    canvas.draw_rectangle(0, 0, 64 / 3, 32, Color::BLUE);
-    canvas.draw_rectangle(64 / 3, 0, 64 / 3, 32, Color::WHITE);
-    canvas.draw_rectangle(2 * 64 / 3, 0, 64 / 3, 32, Color::RED);
+    canvas.draw_rectangle(0, 0, 21, 32, Color::BLUE);
+    canvas.draw_rectangle(21, 0, 22, 32, Color::WHITE);
+    canvas.draw_rectangle(43, 0, 21, 32, Color::RED);
 
     loop {
         m.draw_canvas(&canvas);
