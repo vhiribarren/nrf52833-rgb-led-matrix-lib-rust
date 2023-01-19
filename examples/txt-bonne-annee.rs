@@ -56,7 +56,7 @@ fn main() -> ! {
         oe: p0.p0_12.into(),
     });
 
-    let mut canvas = Canvas::<64, 32>::new();
+    let mut canvas = Canvas::with_64x32();
 
     canvas.draw_stencil(0, 8, &font5x7::B, Color::RED);
     canvas.draw_stencil(6, 8, &font5x7::O, Color::RED);

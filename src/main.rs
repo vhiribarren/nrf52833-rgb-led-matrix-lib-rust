@@ -95,8 +95,7 @@ fn main() -> ! {
         oe: p0.p0_12.into(),
     });
 
-    let scheduled_let_matrix =
-        ScheduledLedMatrix::<4, 64, 32>::new(m, Timer::new(peripherals.TIMER0));
+    let scheduled_let_matrix = ScheduledLedMatrix::take_ref(m, Timer::new(peripherals.TIMER0));
 
     let mut canvas_1 = Canvas::with_64x32();
     canvas_1.draw_text(1, 1, "HELLO", Color::RED);

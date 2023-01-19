@@ -80,8 +80,8 @@ pub struct LedMatrix<
     line_ctrl: [Pin<Output<PushPull>>; LINECTRL_PIN_COUNT],
 }
 
-impl LedMatrix {
-    pub fn new<MODE>(pins: LedMatrixPins64x32<MODE>) -> LedMatrix {
+impl LedMatrix<4, 64, 32> {
+    pub fn new<MODE>(pins: LedMatrixPins64x32<MODE>) -> Self {
         LedMatrix {
             top_colors: [
                 pins.r1.into_push_pull_output(Level::Low),
@@ -194,27 +194,31 @@ pub struct ScheduledLedMatrix<
     timer: Timer<MatrixTimer>,
 }
 
-impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
-    ScheduledLedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
-{
-    pub fn new(
+impl ScheduledLedMatrix<4, 64, 32> {
+    pub fn take_ref(
         led_matrix: LedMatrix<4, 64, 32>,
         timer: Timer<MatrixTimer>,
     ) -> &'static Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> {
-        enable_interrupts!(MATRIX_TIMER_INTERRUPT);
-        let scheduled_let_matrix = ScheduledLedMatrix {
-            led_matrix,
-            front_canvas: Default::default(),
-            timer,
-        };
         cortex_m::interrupt::free(|cs| {
-            SCHEDULED_LED_MATRIX
-                .borrow(cs)
-                .replace(Some(scheduled_let_matrix));
+            let borrowed_scheduled_matrix = SCHEDULED_LED_MATRIX.borrow(cs);
+            if borrowed_scheduled_matrix.borrow().is_some() {
+                return;
+            }
+            enable_interrupts!(MATRIX_TIMER_INTERRUPT);
+            let scheduled_let_matrix = ScheduledLedMatrix {
+                led_matrix,
+                front_canvas: Default::default(),
+                timer,
+            };
+            borrowed_scheduled_matrix.replace(Some(scheduled_let_matrix));
         });
         &SCHEDULED_LED_MATRIX
     }
+}
 
+impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
+    ScheduledLedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
+{
     // fn start_rendering_loop(self) -> Self<started>
     pub fn start_rendering_loop(&mut self) {
         log!("Start rendering loop");

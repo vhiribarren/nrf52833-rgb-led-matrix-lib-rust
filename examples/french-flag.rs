@@ -55,7 +55,7 @@ fn main() -> ! {
         oe: p0.p0_12.into(),
     });
 
-    let mut canvas = Canvas::<64, 32>::new();
+    let mut canvas = Canvas::with_64x32();
 
     canvas.draw_rectangle(0, 0, 21, 32, Color::BLUE);
     canvas.draw_rectangle(21, 0, 22, 32, Color::WHITE);
