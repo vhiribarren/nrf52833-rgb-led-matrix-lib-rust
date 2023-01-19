@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
- */
+*/
 
 #![deny(unsafe_code)]
 #![no_std]
@@ -28,6 +28,9 @@ SOFTWARE.
 pub mod canvas;
 pub mod fonts;
 pub mod ledmatrix;
+
+pub type MatrixTimer = microbit::pac::TIMER0;
+pub const MATRIX_TIMER_INTERRUPT: microbit::pac::Interrupt = microbit::hal::pac::interrupt::TIMER0;
 
 #[macro_export]
 macro_rules! enable_interrupts {

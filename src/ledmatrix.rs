@@ -20,19 +20,34 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
- */
+*/
 
 use core::cell::RefCell;
 
 use crate::canvas::Canvas;
-use crate::log;
+use crate::{enable_interrupts, log, MatrixTimer, MATRIX_TIMER_INTERRUPT};
 use cortex_m::interrupt::Mutex;
 use microbit::hal::gpio::{Level, Output, Pin, PushPull};
 use microbit::hal::timer::Instance;
 use microbit::hal::{prelude::*, Timer};
 
 use microbit::hal::pac::interrupt;
-use microbit::pac::{TIMER0, TIMER1};
+
+const MAX_DRAW_DELAY_MICROSEC: u32 = 10_000;
+
+static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> =
+    Mutex::new(RefCell::new(None));
+
+#[interrupt]
+fn TIMER0() {
+    cortex_m::interrupt::free(|cs| {
+        let mut borrowed_led_matrix = SCHEDULED_LED_MATRIX.borrow(cs).borrow_mut();
+        let schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
+        schedule_led_matrix.ack_interrupt();
+        schedule_led_matrix.refresh_display();
+        schedule_led_matrix.schedule_next_interrupt();
+    });
+}
 
 pub struct LedMatrixPins64x32<MODE> {
     pub r1: Pin<MODE>,
@@ -98,7 +113,7 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         // Here, the usage of the TIMER0 is completely fake, it is just to have the right type when using None
         // Is it possible to have something less far-fetched?
         // Implmenting a dummy struct to reference its type seems not possible since microbit::hal::timer::Instance is a sealed trait.
-        self.draw_canvas_with_delay_buffer(canvas, None::<&mut Timer<TIMER0>>);
+        self.draw_canvas_with_delay_buffer(canvas, None::<&mut Timer<MatrixTimer>>);
     }
 
     pub fn draw_canvas_with_delay_buffer<TIMER>(
@@ -169,11 +184,6 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     }
 }
 
-const MAX_DRAW_DELAY_MICROSEC: u32 = 10_000;
-
-static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> =
-    Mutex::new(RefCell::new(None));
-
 pub struct ScheduledLedMatrix<
     const LINECTRL_PIN_COUNT: usize = 4,
     const WIDTH: usize = 64,
@@ -181,7 +191,7 @@ pub struct ScheduledLedMatrix<
 > {
     front_canvas: Canvas<WIDTH, HEIGHT>,
     led_matrix: LedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>,
-    timer: Timer<TIMER1>,
+    timer: Timer<MatrixTimer>,
 }
 
 impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
@@ -189,8 +199,9 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
 {
     pub fn new(
         led_matrix: LedMatrix<4, 64, 32>,
-        timer: Timer<TIMER1>,
+        timer: Timer<MatrixTimer>,
     ) -> &'static Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> {
+        enable_interrupts!(MATRIX_TIMER_INTERRUPT);
         let scheduled_let_matrix = ScheduledLedMatrix {
             led_matrix,
             front_canvas: Default::default(),
@@ -231,15 +242,4 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         self.timer.start(MAX_DRAW_DELAY_MICROSEC);
         self.timer.enable_interrupt();
     }
-}
-
-#[interrupt]
-fn TIMER1() {
-    cortex_m::interrupt::free(|cs| {
-        let mut borrowed_led_matrix = SCHEDULED_LED_MATRIX.borrow(cs).borrow_mut();
-        let schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
-        schedule_led_matrix.ack_interrupt();
-        schedule_led_matrix.refresh_display();
-        schedule_led_matrix.schedule_next_interrupt();
-    });
 }

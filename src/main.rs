@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
- */
+*/
 
 #![deny(unsafe_code)]
 #![no_main]
@@ -29,12 +29,11 @@ SOFTWARE.
 use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 
-use microbit::hal::pac::interrupt;
 use microbit::hal::timer::Timer;
 use microbit::hal::{gpio, Delay};
 use microbit_led_matrix::canvas::{Canvas, Color};
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32, ScheduledLedMatrix};
-use microbit_led_matrix::{enable_interrupts, log};
+use microbit_led_matrix::log;
 
 #[cfg(not(feature = "logging"))]
 use panic_halt as _;
@@ -73,8 +72,6 @@ fn main() -> ! {
 
     log!("Logging active");
 
-    enable_interrupts!(interrupt::TIMER0, interrupt::TIMER1);
-
     let peripherals = microbit::Peripherals::take().unwrap();
     let core_periphs = microbit::pac::CorePeripherals::take().unwrap();
 
@@ -99,7 +96,7 @@ fn main() -> ! {
     });
 
     let scheduled_let_matrix =
-        ScheduledLedMatrix::<4, 64, 32>::new(m, Timer::new(peripherals.TIMER1));
+        ScheduledLedMatrix::<4, 64, 32>::new(m, Timer::new(peripherals.TIMER0));
 
     let mut canvas_1 = Canvas::with_64x32();
     canvas_1.draw_text(1, 1, "HELLO", Color::RED);
