@@ -28,6 +28,7 @@ SOFTWARE.
 pub mod canvas;
 pub mod fonts;
 pub mod ledmatrix;
+pub mod scheduler;
 
 pub type MatrixTimer = microbit::pac::TIMER0;
 pub const MATRIX_TIMER_INTERRUPT: microbit::pac::Interrupt = microbit::hal::pac::interrupt::TIMER0;

@@ -32,9 +32,10 @@ use cortex_m_rt::entry;
 use microbit::hal::timer::Timer;
 use microbit::hal::{gpio, Delay};
 use microbit_led_matrix::canvas::{Canvas, Color};
-use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32, ScheduledLedMatrix};
+use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 use microbit_led_matrix::log;
 
+use microbit_led_matrix::scheduler::ScheduledLedMatrix;
 #[cfg(not(feature = "logging"))]
 use panic_halt as _;
 
