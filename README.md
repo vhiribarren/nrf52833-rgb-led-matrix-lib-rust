@@ -1,6 +1,17 @@
-# LED Matrix usage with BBC Microbit
+# RGB LED Matrix usage with BBC Microbit
 
 ![used elements](docs/bonne_annee_material.jpg)
+
+The needed elements are:
+
+- a 64x32 [Adafruit matrix panel]
+- a BBC micro:bit v2
+- a [Adafruit RGB Matrix bonnet] to convert the 3.3V micro:bit GPIO outputs to 5V 
+- various Dupont cables, that I made to select the size and the required male/female connectors
+- there is also a 5V DC power supply which can provide up to 10 A
+
+[Adafruit matrix panel]: https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview
+[Adafruit RGB Matrix bonnet]: https://learn.adafruit.com/adafruit-rgb-matrix-bonnet-for-raspberry-pi/overview
 
 ## Deployment
 
@@ -17,12 +28,12 @@ Once they are installed:
 
     $ cargo embed --release
 
+Unless you need to debug, **you must use the release version**. The matrix needs
+frequent refreshes, which will be impeded by the unoptimized code version.
+
 Some examples are also presents in the `examples/` directory. To use them:
 
-    $ cargo embed --release --example raw-simple-display
-
-Unless you need to debug, you should use the release version. The matrix needs frequent refreshes,
-which may be impeded by the unoptimized code version.
+    $ cargo embed --release --example hello-world-blink
 
 [Discovery Book]: https://docs.rust-embedded.org/discovery/
 
@@ -30,17 +41,16 @@ which may be impeded by the unoptimized code version.
 
 What mainly helped me is:
 
-- [Adafruit matrix panel overview] - Wiring and working guide, aims Arduino
+- [Adafruit matrix panel] - Wiring and working guide, aims Arduino
 - [hzeller GitHub] - Wiring and working guide, also explain some issues if using a 3.3V logic circuits like with Cortex-M.
 - [Big Mess o' Wires] - Basic working example, which helped understand the correct OE/Line/Latch sequence and confirmed 
   some issues I had when not modifying the line selection.
+- [Adafruit matrix panel code] - Give some clues on using binary code modulation for LED colors
 
 Some additional related resources:
-- [Adafruit matrix panel code]
 - [Binary code modulation explanation]
-- [Rust port of code for Rasperry Pi]
+- [Rust port of code for Rasperry Pi] (this one requires an operating system)
 
-[Adafruit matrix panel overview]: https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview
 [Adafruit matrix panel code]: https://github.com/adafruit/RGB-matrix-Panel
 [Big Mess o' Wires]: https://www.bigmessowires.com/2018/05/24/64-x-32-led-matrix-programming/
 [hzeller GitHub]: https://github.com/hzeller/rpi-rgb-led-matrix
@@ -49,6 +59,15 @@ Some additional related resources:
 
 ## Various notes
 
+- For now, code not optimized; notably, GPIO are manipulated one at a time
+  through the HAL instead of manipulating them at once through a direct register
+  access, and I do not really care on precise timings
+- For now, only 8 colors are available
+- I stick to heapless development, which make it a bit hard to design something
+  that can adapt to various LED matrix sizes
+- Currrently, globally hard-coded for a 64x32 RGB LED matrix, I have some issues
+  in designing something that can be adapted to other kind of LED Matrix
+  (probably procedural macros are the way, or using a heap and trait objects?)
 - I have issues in writting some unit tests, with the message `can't find crate
   for 'test'`. Possibly related to the use of `no_std` target.
 - Issues in using `defmt` for logging, I have tildes as output. For now, directly
