@@ -32,19 +32,24 @@ use microbit::hal::{prelude::*, Timer};
 
 use microbit::hal::pac::interrupt;
 
-const MAX_DRAW_DELAY_MICROSEC: u32 = 10_000;
-
 static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> =
     Mutex::new(RefCell::new(None));
 
+const DRAW_CYCLE_MAX: u8 = 8;
+const DRAW_CYCLE_BASE_PERIOD_MICROSEC: u32 = 100;
+
 #[interrupt]
 fn TIMER0() {
+    static mut CYCLE_STEP: u8 = 0;
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_led_matrix = SCHEDULED_LED_MATRIX.borrow(cs).borrow_mut();
         let schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
         schedule_led_matrix.ack_interrupt();
         schedule_led_matrix.refresh_display();
-        schedule_led_matrix.schedule_next_interrupt();
+        schedule_led_matrix.schedule_next_interrupt(
+            DRAW_CYCLE_BASE_PERIOD_MICROSEC * 2_u32.pow(*CYCLE_STEP as u32),
+        );
+        *CYCLE_STEP = (*CYCLE_STEP + 1_u8) % DRAW_CYCLE_MAX;
     });
 }
 
@@ -86,7 +91,7 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     // fn start_rendering_loop(self) -> Self<started>
     pub fn start_rendering_loop(&mut self) {
         log!("Start rendering loop");
-        self.schedule_next_interrupt();
+        self.schedule_next_interrupt(DRAW_CYCLE_BASE_PERIOD_MICROSEC);
     }
 
     pub fn swap_canvas(&mut self, canvas: &mut Canvas<WIDTH, HEIGHT>) {
@@ -106,8 +111,8 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
             .draw_canvas_with_delay_buffer(&self.front_canvas, Some(&mut self.timer));
     }
 
-    fn schedule_next_interrupt(&mut self) {
-        self.timer.start(MAX_DRAW_DELAY_MICROSEC);
+    fn schedule_next_interrupt(&mut self, delay_microsec: u32) {
+        self.timer.start(delay_microsec);
         self.timer.enable_interrupt();
     }
 }
