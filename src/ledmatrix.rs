@@ -88,6 +88,31 @@ impl LedMatrix<4, 64, 32> {
 impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     LedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
 {
+
+    pub fn draw_canvas_line(&mut self,  canvas: &Canvas<WIDTH, HEIGHT>, line: usize) {
+        let half_height = HEIGHT / 2;
+        let raw_canvas = canvas.as_ref();
+        let line_index = line;
+        for col_index in 0..WIDTH {
+            let color_top = &raw_canvas[line_index][col_index];
+            let color_bottom = &raw_canvas[line_index + half_height][col_index];
+            let color_chain = color_top.into_iter().chain(color_bottom.into_iter());
+            let pin_chain = self
+                .top_colors
+                .iter_mut()
+                .chain(self.bottom_colors.iter_mut());
+            for (pin, color) in pin_chain.zip(color_chain) {
+                if color > 0 {
+                    pin.set_high().unwrap();
+                } else {
+                    pin.set_low().unwrap();
+                }
+            }
+            self.clock_color();
+        }
+        self.latch_to_line(line);
+    }
+
     pub fn draw_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>) {
         // Here, the usage of the TIMER0 is completely fake, it is just to have the right type when using None
         // Is it possible to have something less far-fetched?
@@ -103,30 +128,12 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         TIMER: Instance,
     {
         let half_height = HEIGHT / 2;
-        let raw_canvas = canvas.as_ref();
         let mut line_time_avg = 0_f32;
         for line_index in 0..half_height {
             if let Some(unwrapped_timer) = &mut timer {
                 unwrapped_timer.start(u32::MAX);
             }
-            for col_index in 0..WIDTH {
-                let color_top = &raw_canvas[line_index][col_index];
-                let color_bottom = &raw_canvas[line_index + half_height][col_index];
-                let color_chain = color_top.into_iter().chain(color_bottom.into_iter());
-                let pin_chain = self
-                    .top_colors
-                    .iter_mut()
-                    .chain(self.bottom_colors.iter_mut());
-                for (pin, color) in pin_chain.zip(color_chain) {
-                    if color > 0 {
-                        pin.set_high().unwrap();
-                    } else {
-                        pin.set_low().unwrap();
-                    }
-                }
-                self.clock_color();
-            }
-            self.latch_to_line(line_index);
+            self.draw_canvas_line(canvas, line_index);
             if let Some(unwrapped_timer) = &mut timer {
                 let counter_delta = unwrapped_timer.read();
                 line_time_avg = line_time_avg * (line_index as f32 / (line_index + 1) as f32)
