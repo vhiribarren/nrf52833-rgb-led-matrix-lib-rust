@@ -6,6 +6,7 @@ The needed elements are:
 
 - a 64x32 [Adafruit matrix panel]
 - a BBC micro:bit v2
+- an edge adapter for the micro:bit to plug some Dupont cables
 - a [Adafruit RGB Matrix bonnet] to convert the 3.3V micro:bit GPIO outputs to 5V 
 - various Dupont cables, that I made to select the size and the required male/female connectors
 - there is also a 5V DC power supply which can provide up to 10 A
