@@ -35,21 +35,40 @@ use microbit::hal::pac::interrupt;
 static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> =
     Mutex::new(RefCell::new(None));
 
-const DRAW_CYCLE_MAX: u8 = 8;
-const DRAW_CYCLE_BASE_PERIOD_MICROSEC: u32 = 100;
+const BCM_CYCLES_NB: u8 = 4;
+const BCM_BASE_PERIOD_MICROSEC: u32 = 100;
 
 #[interrupt]
 fn TIMER0() {
     static mut CYCLE_STEP: u8 = 0;
+    static mut LINE_STEP: usize = 0;
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_led_matrix = SCHEDULED_LED_MATRIX.borrow(cs).borrow_mut();
         let schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
         schedule_led_matrix.ack_interrupt();
-        schedule_led_matrix.refresh_display();
-        schedule_led_matrix.schedule_next_interrupt(
-            DRAW_CYCLE_BASE_PERIOD_MICROSEC * 2_u32.pow(*CYCLE_STEP as u32),
-        );
-        *CYCLE_STEP = (*CYCLE_STEP + 1_u8) % DRAW_CYCLE_MAX;
+        schedule_led_matrix.display_line(*LINE_STEP);
+
+/* 
+        if *LINE_STEP >= schedule_led_matrix.half_height() {
+            *LINE_STEP = 0;
+            *CYCLE_STEP = (*CYCLE_STEP + 1_u8) % BCM_CYCLES_NB;
+        }
+        else {
+            *LINE_STEP += 1;
+        }
+*/
+
+        let next_int_delay = BCM_BASE_PERIOD_MICROSEC * 2_u32.pow(*CYCLE_STEP as u32);
+        schedule_led_matrix.schedule_next_interrupt(next_int_delay);
+
+        if *CYCLE_STEP >= BCM_CYCLES_NB {
+            *CYCLE_STEP = 0;
+            *LINE_STEP = (*LINE_STEP + 1) % schedule_led_matrix.half_height();
+        }
+        else {
+            *CYCLE_STEP += 1;
+        }
+
     });
 }
 
@@ -88,10 +107,14 @@ impl ScheduledLedMatrix<4, 64, 32> {
 impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     ScheduledLedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
 {
+    pub fn half_height(&self) -> usize {
+        HEIGHT/2
+    }
+
     // fn start_rendering_loop(self) -> Self<started>
     pub fn start_rendering_loop(&mut self) {
         log!("Start rendering loop");
-        self.schedule_next_interrupt(DRAW_CYCLE_BASE_PERIOD_MICROSEC);
+        self.schedule_next_interrupt(BCM_BASE_PERIOD_MICROSEC);
     }
 
     pub fn swap_canvas(&mut self, canvas: &mut Canvas<WIDTH, HEIGHT>) {
@@ -109,6 +132,10 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     fn refresh_display(&mut self) {
         self.led_matrix
             .draw_canvas_with_delay_buffer(&self.front_canvas, Some(&mut self.timer));
+    }
+
+    fn display_line(&mut self, line: usize) {
+        self.led_matrix.draw_canvas_line(&self.front_canvas, line);
     }
 
     fn schedule_next_interrupt(&mut self, delay_microsec: u32) {
