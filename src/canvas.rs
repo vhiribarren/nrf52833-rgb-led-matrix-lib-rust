@@ -96,6 +96,12 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
     pub const fn new() -> Self {
         Canvas([[Color::BLACK; WIDTH]; HEIGHT])
     }
+    pub fn width(&self) -> usize {
+        WIDTH
+    }
+    pub fn height(&self) -> usize {
+        HEIGHT
+    }
     pub fn with_background_color(color: Color) -> Self {
         Canvas([[color; WIDTH]; HEIGHT])
     }

@@ -88,8 +88,7 @@ impl LedMatrix<4, 64, 32> {
 impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     LedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
 {
-
-    pub fn draw_canvas_line(&mut self,  canvas: &Canvas<WIDTH, HEIGHT>, line: usize) {
+    pub fn draw_canvas_line(&mut self, canvas: &Canvas<WIDTH, HEIGHT>, line: usize) {
         let half_height = HEIGHT / 2;
         let raw_canvas = canvas.as_ref();
         let line_index = line;

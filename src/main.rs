@@ -26,12 +26,11 @@ SOFTWARE.
 #![no_main]
 #![no_std]
 
-use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 
+use microbit::hal::gpio;
 use microbit::hal::timer::Timer;
-use microbit::hal::{gpio, Delay};
-use microbit_led_matrix::canvas::{Canvas, Color};
+use microbit_led_matrix::canvas::Color;
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 use microbit_led_matrix::log;
 
@@ -64,8 +63,6 @@ Correct order is:
     set OE to L
 */
 
-const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
-
 #[entry]
 fn main() -> ! {
     #[cfg(feature = "logging")]
@@ -74,9 +71,7 @@ fn main() -> ! {
     log!("Logging active");
 
     let peripherals = microbit::Peripherals::take().unwrap();
-    let core_periphs = microbit::pac::CorePeripherals::take().unwrap();
 
-    let mut delay = Delay::new(core_periphs.SYST);
     let p0 = gpio::p0::Parts::new(peripherals.P0);
     let p1 = gpio::p1::Parts::new(peripherals.P1);
 
@@ -98,28 +93,33 @@ fn main() -> ! {
 
     let scheduled_let_matrix = ScheduledLedMatrix::take_ref(m, Timer::new(peripherals.TIMER0));
 
-    let mut canvas_1 = Canvas::with_64x32();
-    canvas_1.draw_text(1, 1, "HELLO", Color::RED);
-    let mut canvas_2 = Canvas::with_64x32();
-    canvas_2.draw_text(1, 1, "WORLD", Color::RED);
-
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_scheduled_led_matrix = scheduled_let_matrix.borrow(cs).borrow_mut();
         let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
-        led_matrix.start_rendering_loop();
-        led_matrix.copy_canvas(&canvas_1);
-    });
+        let canvas = led_matrix.borrow_mut_canvas();
+        let w = canvas.width();
+        let h = canvas.height();
+        let canvas_array = canvas.as_mut();
 
-    let next_canvas = &mut canvas_2;
+        let ramp_color = |pos: usize| -> u8 { (255 * pos / (w / 6) % 255) as u8 };
+        for y in 0..h {
+            for x in 0..w {
+                canvas_array[y][x] = match x {
+                    x if x < w / 6 => Color::new(255, ramp_color(x), 0),
+                    x if x < 2 * w / 6 => Color::new(ramp_color(2 * w / 6 - x), 255, 0),
+                    x if x < 3 * w / 6 => Color::new(0, 255, ramp_color(x - 2 * w / 6)),
+                    x if x < 4 * w / 6 => Color::new(0, ramp_color(4 * w / 6 - x), 255),
+                    x if x < 5 * w / 6 => Color::new(ramp_color(x - 4 * w / 6), 0, 255),
+                    x => Color::new(255, 0, ramp_color(w - x)),
+                };
+            }
+        }
+
+        led_matrix.start_rendering_loop();
+    });
 
     log!("Start loop!");
     loop {
-        delay.delay_us(CANVAS_SWITCH_DELAY_MICROSEC);
-        log!("Switch!");
-        cortex_m::interrupt::free(|cs| {
-            let mut borrowed_scheduled_led_matrix = scheduled_let_matrix.borrow(cs).borrow_mut();
-            let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
-            led_matrix.swap_canvas(next_canvas);
-        });
+        cortex_m::asm::wfi();
     }
 }

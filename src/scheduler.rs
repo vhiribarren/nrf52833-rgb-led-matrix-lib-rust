@@ -35,8 +35,8 @@ use microbit::hal::pac::interrupt;
 static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> =
     Mutex::new(RefCell::new(None));
 
-const BCM_CYCLES_NB: u8 = 4;
-const BCM_BASE_PERIOD_MICROSEC: u32 = 100;
+const BCM_CYCLES_NB: u8 = 1;
+const BCM_BASE_PERIOD_MICROSEC: u32 = 1;
 
 #[interrupt]
 fn TIMER0() {
@@ -48,15 +48,15 @@ fn TIMER0() {
         schedule_led_matrix.ack_interrupt();
         schedule_led_matrix.display_line(*LINE_STEP);
 
-/* 
-        if *LINE_STEP >= schedule_led_matrix.half_height() {
-            *LINE_STEP = 0;
-            *CYCLE_STEP = (*CYCLE_STEP + 1_u8) % BCM_CYCLES_NB;
-        }
-        else {
-            *LINE_STEP += 1;
-        }
-*/
+        /*
+                if *LINE_STEP >= schedule_led_matrix.half_height() {
+                    *LINE_STEP = 0;
+                    *CYCLE_STEP = (*CYCLE_STEP + 1_u8) % BCM_CYCLES_NB;
+                }
+                else {
+                    *LINE_STEP += 1;
+                }
+        */
 
         let next_int_delay = BCM_BASE_PERIOD_MICROSEC * 2_u32.pow(*CYCLE_STEP as u32);
         schedule_led_matrix.schedule_next_interrupt(next_int_delay);
@@ -64,11 +64,9 @@ fn TIMER0() {
         if *CYCLE_STEP >= BCM_CYCLES_NB {
             *CYCLE_STEP = 0;
             *LINE_STEP = (*LINE_STEP + 1) % schedule_led_matrix.half_height();
-        }
-        else {
+        } else {
             *CYCLE_STEP += 1;
         }
-
     });
 }
 
@@ -108,7 +106,7 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     ScheduledLedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
 {
     pub fn half_height(&self) -> usize {
-        HEIGHT/2
+        HEIGHT / 2
     }
 
     // fn start_rendering_loop(self) -> Self<started>
@@ -123,6 +121,10 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
 
     pub fn copy_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>) {
         self.front_canvas = canvas.clone();
+    }
+
+    pub fn borrow_mut_canvas(&mut self) -> &mut Canvas<WIDTH, HEIGHT> {
+        &mut self.front_canvas
     }
 
     pub fn ack_interrupt(&mut self) {
