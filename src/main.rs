@@ -101,15 +101,24 @@ fn main() -> ! {
         let h = canvas.height();
         let canvas_array = canvas.as_mut();
 
-        let ramp_color = |pos: usize| -> u8 { (255 * pos / (w / 6) % 255) as u8 };
+        let color_segment = w / 6;
+        let ramp_color = |pos: usize| -> u8 { (255 * pos / color_segment) as u8 };
         for y in 0..h {
             for x in 0..w {
                 canvas_array[y][x] = match x {
-                    x if x < w / 6 => Color::new(255, ramp_color(x), 0),
-                    x if x < 2 * w / 6 => Color::new(ramp_color(2 * w / 6 - x), 255, 0),
-                    x if x < 3 * w / 6 => Color::new(0, 255, ramp_color(x - 2 * w / 6)),
-                    x if x < 4 * w / 6 => Color::new(0, ramp_color(4 * w / 6 - x), 255),
-                    x if x < 5 * w / 6 => Color::new(ramp_color(x - 4 * w / 6), 0, 255),
+                    x if x < color_segment => Color::new(255, ramp_color(x), 0),
+                    x if x < 2 * color_segment => {
+                        Color::new(ramp_color(2 * color_segment - x), 255, 0)
+                    }
+                    x if x < 3 * color_segment => {
+                        Color::new(0, 255, ramp_color(x - 2 * color_segment))
+                    }
+                    x if x < 4 * color_segment => {
+                        Color::new(0, ramp_color(4 * color_segment - x), 255)
+                    }
+                    x if x < 5 * color_segment => {
+                        Color::new(ramp_color(x - 4 * color_segment), 0, 255)
+                    }
                     x => Color::new(255, 0, ramp_color(w - x)),
                 };
             }

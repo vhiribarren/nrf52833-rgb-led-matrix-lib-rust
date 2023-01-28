@@ -44,6 +44,22 @@ pub struct LedMatrixPins64x32<MODE> {
     pub oe: Pin<MODE>,
 }
 
+/// 0 is LSB, 7 is MSB for a u8
+#[derive(Copy, Clone)]
+pub struct ColorBitPosition(pub u8);
+
+impl ColorBitPosition {
+    pub const MSB_POSITION: u8 = 7;
+    pub const LSB_POSITION: u8 = 0;
+    pub const MSB_COLOR_BIT_POSITION: ColorBitPosition = ColorBitPosition(Self::MSB_POSITION);
+}
+
+impl Default for ColorBitPosition {
+    fn default() -> Self {
+        Self::MSB_COLOR_BIT_POSITION
+    }
+}
+
 const RGB_COUNT: usize = 3;
 
 pub struct LedMatrix<
@@ -88,7 +104,12 @@ impl LedMatrix<4, 64, 32> {
 impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     LedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>
 {
-    pub fn draw_canvas_line(&mut self, canvas: &Canvas<WIDTH, HEIGHT>, line: usize) {
+    pub fn draw_canvas_line(
+        &mut self,
+        canvas: &Canvas<WIDTH, HEIGHT>,
+        line: usize,
+        bit_position: ColorBitPosition,
+    ) {
         let half_height = HEIGHT / 2;
         let raw_canvas = canvas.as_ref();
         let line_index = line;
@@ -101,7 +122,7 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
                 .iter_mut()
                 .chain(self.bottom_colors.iter_mut());
             for (pin, color) in pin_chain.zip(color_chain) {
-                if color > 0 {
+                if (color >> bit_position.0) & 0x01 == 1 {
                     pin.set_high().unwrap();
                 } else {
                     pin.set_low().unwrap();
@@ -112,17 +133,18 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         self.latch_to_line(line);
     }
 
-    pub fn draw_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>) {
+    pub fn draw_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>, bit_position: ColorBitPosition) {
         // Here, the usage of the TIMER0 is completely fake, it is just to have the right type when using None
         // Is it possible to have something less far-fetched?
         // Implmenting a dummy struct to reference its type seems not possible since microbit::hal::timer::Instance is a sealed trait.
-        self.draw_canvas_with_delay_buffer(canvas, None::<&mut Timer<MatrixTimer>>);
+        self.draw_canvas_with_delay_buffer(canvas, None::<&mut Timer<MatrixTimer>>, bit_position);
     }
 
     pub fn draw_canvas_with_delay_buffer<TIMER>(
         &mut self,
         canvas: &Canvas<WIDTH, HEIGHT>,
         mut timer: Option<&mut Timer<TIMER>>,
+        bit_position: ColorBitPosition,
     ) where
         TIMER: Instance,
     {
@@ -132,7 +154,7 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
             if let Some(unwrapped_timer) = &mut timer {
                 unwrapped_timer.start(u32::MAX);
             }
-            self.draw_canvas_line(canvas, line_index);
+            self.draw_canvas_line(canvas, line_index, bit_position);
             if let Some(unwrapped_timer) = &mut timer {
                 let counter_delta = unwrapped_timer.read();
                 line_time_avg = line_time_avg * (line_index as f32 / (line_index + 1) as f32)

@@ -76,6 +76,6 @@ fn main() -> ! {
     canvas.draw_stencil(52, 12, &font5x7::N_3, Color::WHITE);
 
     loop {
-        m.draw_canvas(&canvas);
+        m.draw_canvas(&canvas, Default::default());
     }
 }

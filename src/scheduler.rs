@@ -25,7 +25,7 @@ SOFTWARE.
 use core::cell::RefCell;
 
 use crate::canvas::Canvas;
-use crate::ledmatrix::LedMatrix;
+use crate::ledmatrix::{ColorBitPosition, LedMatrix};
 use crate::{enable_interrupts, log, MatrixTimer, MATRIX_TIMER_INTERRUPT};
 use cortex_m::interrupt::Mutex;
 use microbit::hal::{prelude::*, Timer};
@@ -35,7 +35,7 @@ use microbit::hal::pac::interrupt;
 static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> =
     Mutex::new(RefCell::new(None));
 
-const BCM_CYCLES_NB: u8 = 1;
+const BCM_CYCLES_NB: u8 = 2; // min is 1
 const BCM_BASE_PERIOD_MICROSEC: u32 = 1;
 
 #[interrupt]
@@ -46,8 +46,10 @@ fn TIMER0() {
         let mut borrowed_led_matrix = SCHEDULED_LED_MATRIX.borrow(cs).borrow_mut();
         let schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
         schedule_led_matrix.ack_interrupt();
-        schedule_led_matrix.display_line(*LINE_STEP);
-
+        schedule_led_matrix.display_line(
+            *LINE_STEP,
+            ColorBitPosition(*CYCLE_STEP + ColorBitPosition::MSB_POSITION - BCM_CYCLES_NB + 1),
+        );
         /*
                 if *LINE_STEP >= schedule_led_matrix.half_height() {
                     *LINE_STEP = 0;
@@ -61,7 +63,7 @@ fn TIMER0() {
         let next_int_delay = BCM_BASE_PERIOD_MICROSEC * 2_u32.pow(*CYCLE_STEP as u32);
         schedule_led_matrix.schedule_next_interrupt(next_int_delay);
 
-        if *CYCLE_STEP >= BCM_CYCLES_NB {
+        if *CYCLE_STEP >= BCM_CYCLES_NB - 1 {
             *CYCLE_STEP = 0;
             *LINE_STEP = (*LINE_STEP + 1) % schedule_led_matrix.half_height();
         } else {
@@ -131,13 +133,14 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         self.timer.disable_interrupt();
     }
 
-    fn refresh_display(&mut self) {
-        self.led_matrix
-            .draw_canvas_with_delay_buffer(&self.front_canvas, Some(&mut self.timer));
-    }
+    // fn refresh_display(&mut self) {
+    //     self.led_matrix
+    //         .draw_canvas_with_delay_buffer(&self.front_canvas, Some(&mut self.timer));
+    // }
 
-    fn display_line(&mut self, line: usize) {
-        self.led_matrix.draw_canvas_line(&self.front_canvas, line);
+    fn display_line(&mut self, line: usize, bit_position: ColorBitPosition) {
+        self.led_matrix
+            .draw_canvas_line(&self.front_canvas, line, bit_position);
     }
 
     fn schedule_next_interrupt(&mut self, delay_microsec: u32) {

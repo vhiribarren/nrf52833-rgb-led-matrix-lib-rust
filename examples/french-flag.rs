@@ -62,6 +62,6 @@ fn main() -> ! {
     canvas.draw_rectangle(43, 0, 21, 32, Color::RED);
 
     loop {
-        m.draw_canvas(&canvas);
+        m.draw_canvas(&canvas, Default::default());
     }
 }
