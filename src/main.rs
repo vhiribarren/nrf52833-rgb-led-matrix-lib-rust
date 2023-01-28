@@ -106,20 +106,23 @@ fn main() -> ! {
         for y in 0..h {
             for x in 0..w {
                 canvas_array[y][x] = match x {
-                    x if x < color_segment => Color::new(255, ramp_color(x), 0),
-                    x if x < 2 * color_segment => {
+                    x if x <= color_segment => Color::new(255, ramp_color(x), 0),
+                    x if x <= 2 * color_segment => {
                         Color::new(ramp_color(2 * color_segment - x), 255, 0)
                     }
-                    x if x < 3 * color_segment => {
+                    x if x <= 3 * color_segment => {
                         Color::new(0, 255, ramp_color(x - 2 * color_segment))
                     }
-                    x if x < 4 * color_segment => {
+                    x if x <= 4 * color_segment => {
                         Color::new(0, ramp_color(4 * color_segment - x), 255)
                     }
-                    x if x < 5 * color_segment => {
+                    x if x <= 5 * color_segment => {
                         Color::new(ramp_color(x - 4 * color_segment), 0, 255)
                     }
-                    x => Color::new(255, 0, ramp_color(w - x)),
+                    x if x <= 6 * color_segment => {
+                        Color::new(255, 0, ramp_color(6 * color_segment - x))
+                    }
+                    _ => Color::new(255, 0, 0),
                 };
             }
         }
