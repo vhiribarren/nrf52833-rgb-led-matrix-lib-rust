@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-use core::cmp::min;
+use core::{cmp::min, ops::Mul};
 
 use crate::fonts::font5x7;
 
@@ -54,6 +54,30 @@ impl Color {
 
     pub fn b(&self) -> u8 {
         self.0[2]
+    }
+}
+
+impl Mul<f32> for Color {
+    type Output = Color;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Color::new(
+            (rhs * self.r() as f32) as u8,
+            (rhs * self.g() as f32) as u8,
+            (rhs * self.b() as f32) as u8,
+        )
+    }
+}
+
+impl Mul<Color> for f32 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color::new(
+            (self * rhs.r() as f32) as u8,
+            (self * rhs.g() as f32) as u8,
+            (self * rhs.b() as f32) as u8,
+        )
     }
 }
 
