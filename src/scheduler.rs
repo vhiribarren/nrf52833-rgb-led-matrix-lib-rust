@@ -35,7 +35,7 @@ use microbit::hal::pac::interrupt;
 static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> =
     Mutex::new(RefCell::new(None));
 
-const BCM_CYCLES_NB: u8 = 2; // min is 1
+const BCM_CYCLES_NB: u8 = 1; // min is 1
 const BCM_BASE_PERIOD_MICROSEC: u32 = 1;
 
 #[interrupt]

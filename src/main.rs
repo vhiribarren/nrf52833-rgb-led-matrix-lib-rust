@@ -102,27 +102,36 @@ fn main() -> ! {
         let canvas_array = canvas.as_mut();
 
         let color_segment = w / 6;
-        let ramp_color = |pos: usize| -> u8 { (255 * pos / color_segment) as u8 };
         for y in 0..h {
+            let height_factor = (y as f32) / (h as f32);
+            let main_color = (255_f32 * match y {
+                y if y < h/2 => 2_f32 * height_factor,
+                _ => 1_f32,
+            }) as u8;
+            let minor_color = (255_f32 * match y {
+                y if y < h/2 => 0.0,
+                _ => height_factor + 0.5,
+            }) as u8;
+            let ramp_color = |pos: usize| -> u8 { (height_factor * 255.0 * pos as f32 / color_segment as f32) as u8 };
             for x in 0..w {
                 canvas_array[y][x] = match x {
-                    x if x <= color_segment => Color::new(255, ramp_color(x), 0),
+                    x if x <= color_segment => Color::new(main_color, ramp_color(x), minor_color),
                     x if x <= 2 * color_segment => {
-                        Color::new(ramp_color(2 * color_segment - x), 255, 0)
+                        Color::new(ramp_color(2 * color_segment - x), main_color, minor_color)
                     }
                     x if x <= 3 * color_segment => {
-                        Color::new(0, 255, ramp_color(x - 2 * color_segment))
+                        Color::new(minor_color, main_color, ramp_color(x - 2 * color_segment))
                     }
                     x if x <= 4 * color_segment => {
-                        Color::new(0, ramp_color(4 * color_segment - x), 255)
+                        Color::new(minor_color, ramp_color(4 * color_segment - x), main_color)
                     }
                     x if x <= 5 * color_segment => {
-                        Color::new(ramp_color(x - 4 * color_segment), 0, 255)
+                        Color::new(ramp_color(x - 4 * color_segment), minor_color, main_color)
                     }
                     x if x <= 6 * color_segment => {
-                        Color::new(255, 0, ramp_color(6 * color_segment - x))
+                        Color::new(main_color, minor_color, ramp_color(6 * color_segment - x))
                     }
-                    _ => Color::new(255, 0, 0),
+                    _ => height_factor * Color::WHITE,
                 };
             }
         }
