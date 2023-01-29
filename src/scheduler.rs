@@ -26,9 +26,9 @@ use core::cell::RefCell;
 
 use crate::canvas::Canvas;
 use crate::ledmatrix::{ColorBitPosition, LedMatrix};
+use crate::timer::Timer16Mhz;
 use crate::{enable_interrupts, log, MatrixTimer, MATRIX_TIMER_INTERRUPT};
 use cortex_m::interrupt::Mutex;
-use microbit::hal::{prelude::*, Timer};
 
 use microbit::hal::pac::interrupt;
 
@@ -79,13 +79,13 @@ pub struct ScheduledLedMatrix<
 > {
     front_canvas: Canvas<WIDTH, HEIGHT>,
     led_matrix: LedMatrix<LINECTRL_PIN_COUNT, WIDTH, HEIGHT>,
-    timer: Timer<MatrixTimer>,
+    timer: Timer16Mhz<MatrixTimer>,
 }
 
 impl ScheduledLedMatrix<4, 64, 32> {
     pub fn take_ref(
         led_matrix: LedMatrix<4, 64, 32>,
-        timer: Timer<MatrixTimer>,
+        timer: Timer16Mhz<MatrixTimer>,
     ) -> &'static Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> {
         cortex_m::interrupt::free(|cs| {
             let borrowed_scheduled_matrix = SCHEDULED_LED_MATRIX.borrow(cs);

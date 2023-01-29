@@ -23,10 +23,10 @@ SOFTWARE.
 */
 
 use crate::canvas::Canvas;
+use crate::timer::Timer16Mhz;
 use crate::MatrixTimer;
 use microbit::hal::gpio::{Level, Output, Pin, PushPull};
-use microbit::hal::timer::Instance;
-use microbit::hal::{prelude::*, Timer};
+use microbit::hal::prelude::*;
 
 pub struct LedMatrixPins64x32<MODE> {
     pub r1: Pin<MODE>,
@@ -137,17 +137,19 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         // Here, the usage of the TIMER0 is completely fake, it is just to have the right type when using None
         // Is it possible to have something less far-fetched?
         // Implmenting a dummy struct to reference its type seems not possible since microbit::hal::timer::Instance is a sealed trait.
-        self.draw_canvas_with_delay_buffer(canvas, None::<&mut Timer<MatrixTimer>>, bit_position);
+        self.draw_canvas_with_delay_buffer(
+            canvas,
+            None::<&mut Timer16Mhz<MatrixTimer>>,
+            bit_position,
+        );
     }
 
-    pub fn draw_canvas_with_delay_buffer<TIMER>(
+    pub fn draw_canvas_with_delay_buffer<T: microbit::hal::timer::Instance>(
         &mut self,
         canvas: &Canvas<WIDTH, HEIGHT>,
-        mut timer: Option<&mut Timer<TIMER>>,
+        mut timer: Option<&mut Timer16Mhz<T>>,
         bit_position: ColorBitPosition,
-    ) where
-        TIMER: Instance,
-    {
+    ) {
         let half_height = HEIGHT / 2;
         let mut line_time_avg = 0_f32;
         for line_index in 0..half_height {
