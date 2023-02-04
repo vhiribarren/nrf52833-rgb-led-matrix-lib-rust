@@ -132,6 +132,9 @@ fn main() -> ! {
 
     log!("Start loop!");
     loop {
-        cortex_m::asm::wfi();
+       // Seems that the drawing cycle is less quick if we wait for an interrupt
+       // Probably a penalty when waking-up the processor
+       // Disabled the next line for now
+       // cortex_m::asm::wfi();
     }
 }
