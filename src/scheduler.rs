@@ -50,14 +50,14 @@ fn TIMER0() {
             *LINE_STEP,
             ColorBitPosition(*CYCLE_STEP + ColorBitPosition::MSB_POSITION - BCM_CYCLES_NB + 1),
         );
-        /*
-                if *LINE_STEP >= schedule_led_matrix.half_height() {
-                    *LINE_STEP = 0;
-                    *CYCLE_STEP = (*CYCLE_STEP + 1_u8) % BCM_CYCLES_NB;
-                }
-                else {
-                    *LINE_STEP += 1;
-                }
+        /* TODO: Bug somewhere, but I would like to test the result
+        if *LINE_STEP >= schedule_led_matrix.half_height() {
+            *LINE_STEP = 0;
+            *CYCLE_STEP = (*CYCLE_STEP + 1_u8) % BCM_CYCLES_NB;
+        }
+        else {
+            *LINE_STEP += 1;
+        }
         */
 
         let next_int_delay = BCM_BASE_PERIOD_MICROSEC * 2_u32.pow(*CYCLE_STEP as u32);
