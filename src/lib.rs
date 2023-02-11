@@ -26,6 +26,8 @@ SOFTWARE.
 #![no_std]
 
 pub mod canvas;
+pub mod metrics;
+pub mod readonly_cell;
 pub mod fonts;
 pub mod ledmatrix;
 pub mod scheduler;
@@ -49,7 +51,9 @@ macro_rules! enable_interrupts {
 #[macro_export]
 macro_rules! log {
     ($($x:tt)*) => {
-        #[cfg(feature = "logging")]
-        rtt_target::rprintln!($($x)*);
+        {
+            #[cfg(feature = "logging")]
+            rtt_target::rprintln!($($x)*);
+        }
     };
 }

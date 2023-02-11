@@ -42,6 +42,7 @@ const BCM_BASE_PERIOD_MICROSEC: u32 = 1;
 fn TIMER0() {
     static mut CYCLE_STEP: u8 = 0;
     static mut LINE_STEP: usize = 0;
+
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_led_matrix = SCHEDULED_LED_MATRIX.borrow(cs).borrow_mut();
         let schedule_led_matrix = borrowed_led_matrix.as_mut().unwrap();
@@ -66,6 +67,18 @@ fn TIMER0() {
         if *CYCLE_STEP >= BCM_CYCLES_NB - 1 {
             *CYCLE_STEP = 0;
             *LINE_STEP = (*LINE_STEP + 1) % schedule_led_matrix.half_height();
+            #[cfg(feature = "logging")]
+            {
+                if *LINE_STEP == 0 {
+                    let mut borrowed_draw_metrics =
+                        crate::metrics::DRAW_CYCLE_METRICS.borrow(cs).borrow_mut();
+                    if let Some(draw_metrics) = borrowed_draw_metrics.as_mut() {
+                        draw_metrics.inc_period();
+                    } else {
+                        log!("Issue, DRAW_CYCLE_METRICS is empty.");
+                    }
+                }
+            }
         } else {
             *CYCLE_STEP += 1;
         }

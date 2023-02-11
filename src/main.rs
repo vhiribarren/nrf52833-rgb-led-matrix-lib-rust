@@ -35,14 +35,11 @@ use microbit_led_matrix::log;
 
 use microbit_led_matrix::scheduler::ScheduledLedMatrix;
 use microbit_led_matrix::timer::Timer16Mhz;
+
 #[cfg(not(feature = "logging"))]
 use panic_halt as _;
-
 #[cfg(feature = "logging")]
 use panic_rtt_target as _;
-
-#[cfg(feature = "logging")]
-use rtt_target::rtt_init_print;
 
 /*
 If there are not regular switch between two elements of A, B, C or D, the panel shutdown.
@@ -65,12 +62,16 @@ Correct order is:
 
 #[entry]
 fn main() -> ! {
-    #[cfg(feature = "logging")]
-    rtt_init_print!();
-
-    log!("Logging active");
-
     let peripherals = microbit::Peripherals::take().unwrap();
+
+    #[cfg(feature = "logging")]
+    {
+        use microbit_led_matrix::metrics::*;
+        rtt_target::rtt_init_print!();
+        log!("Logging active");
+        let timer_source = init_global_time_source(peripherals.CLOCK, peripherals.RTC0);
+        init_debug_metrics(timer_source);
+    }
 
     let p0 = gpio::p0::Parts::new(peripherals.P0);
     let p1 = gpio::p1::Parts::new(peripherals.P1);
@@ -131,10 +132,11 @@ fn main() -> ! {
     });
 
     log!("Start loop!");
+    #[allow(clippy::empty_loop)]
     loop {
-       // Seems that the drawing cycle is less quick if we wait for an interrupt
-       // Probably a penalty when waking-up the processor
-       // Disabled the next line for now
-       // cortex_m::asm::wfi();
+        // Seems that the drawing cycle is less quick if we wait for an interrupt
+        // Probably a penalty when waking-up the processor
+        // Disabled the next line for now
+        //cortex_m::asm::wfi();
     }
 }
