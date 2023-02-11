@@ -1,7 +1,5 @@
 // https://stackoverflow.com/questions/58953892/is-there-a-lightweight-alternative-for-a-mutex-in-embedded-rust-when-a-value-wil
 
-#![allow(unsafe_code)]
-
 use core::cell::UnsafeCell;
 use core::sync::atomic::{AtomicBool, Ordering};
 

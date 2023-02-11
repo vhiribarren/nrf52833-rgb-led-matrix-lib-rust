@@ -4,7 +4,7 @@ pub struct Timer16Mhz<T>(T);
 
 impl<T: Instance> Timer16Mhz<T> {
     ///  0 -> 16 MHz, 1 -> 8 MHz, ... 4 -> 1 MHz
-    const PRESCALER: u8 = 0;
+    const PRESCALER: u8 = 4;
 
     pub fn new(timer: T) -> Self {
         timer
@@ -12,7 +12,6 @@ impl<T: Instance> Timer16Mhz<T> {
             .shorts
             .write(|w| w.compare0_clear().enabled().compare0_stop().enabled());
         timer.as_timer0().prescaler.write(
-            #[allow(unsafe_code)]
             |w| unsafe { w.prescaler().bits(Self::PRESCALER) },
         );
         timer.as_timer0().bitmode.write(|w| w.bitmode()._32bit());
@@ -38,7 +37,6 @@ impl<T: Instance> Timer16Mhz<T> {
     }
 
     pub fn read(&self) -> u32 {
-        #[allow(unsafe_code)]
         self.0.as_timer0().tasks_capture[1].write(|w| unsafe { w.bits(1) });
         self.0.as_timer0().cc[1].read().bits()
     }
