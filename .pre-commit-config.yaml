@@ -1,0 +1,31 @@
+# Based on https://github.com/doublify/pre-commit-rust
+#
+# To install pre-commit hooks:
+# - install pre-commit; e.g. for MacOS with brew: brew install pre-commit
+# - run: pre-commit install
+
+repos:
+
+    - repo: local
+      hooks:
+
+          - id: cargo-fmt
+            name: cargo fmt
+            entry: cargo fmt
+            language: system
+            files: \.rs$
+            pass_filenames: false
+
+          - id: cargo-check-no-features
+            name: cargo check
+            entry: cargo check
+            language: system
+            files: \.rs$
+            pass_filenames: false
+
+          - id: cargo-check-logging
+            name: cargo check --features logging
+            entry: cargo check --features logging
+            language: system
+            files: \.rs$
+            pass_filenames: false
