@@ -14,6 +14,7 @@ The needed elements are:
 [Adafruit matrix panel]: https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview
 [Adafruit RGB Matrix bonnet]: https://learn.adafruit.com/adafruit-rgb-matrix-bonnet-for-raspberry-pi/overview
 
+
 ## Deployment
 
 To deploy, you must set up the tools described in the Rust [Discovery Book]. Notably:
@@ -38,6 +39,7 @@ Some examples are also presents in the `examples/` directory. To use them:
 
 [Discovery Book]: https://docs.rust-embedded.org/discovery/
 
+
 ## Resources
 
 What mainly helped me is:
@@ -58,12 +60,42 @@ Some additional related resources:
 [Binary code modulation explanation]: http://www.batsocks.co.uk/readme/art_bcm_1.htm
 [Rust port of code for Rasperry Pi]: https://github.com/EmbersArc/rpi_led_panel
 
+
+## Development
+
+### Debug and logging
+
+To debug and display some metrics, the `logging` feature can be enabled.
+
+In order to display the logs using `cargo embed`, you can create a
+`Embed.local.toml` local file, and override some elements from `Embed.toml` to
+enable RTT.
+
+    [default.rtt]
+    enabled = true
+
+Then you can recompile and inject the code by activating the `logging` feature:
+
+    $ cargo embed --release --features logging
+
+### Pre-commit hooks
+
+Some git [pre-commit] hooks are available. You can install them using:
+
+    $ pre-commit install
+
+[pre-commit]: https://pre-commit.com/
+
+
 ## Various notes
 
 - For now, code not optimized; notably, GPIO are manipulated one at a time
   through the HAL instead of manipulating them at once through a direct register
   access, and I do not really care on precise timings
-- For now, only 8 colors are available
+- Binary Code Modulation is implemented to have more than 8 colors. For now, I
+  only manage to use 2 BCM bit plans with the Microbit, but it should allow
+  about 64 colors? Anyay, the screen is not refreshed quickly enough to allow
+  more colors. No gamma correction.
 - I stick to heapless development, which make it a bit hard to design something
   that can adapt to various LED matrix sizes
 - Currrently, globally hard-coded for a 64x32 RGB LED matrix, I have some issues
@@ -73,7 +105,6 @@ Some additional related resources:
   for 'test'`. Possibly related to the use of `no_std` target.
 - Issues in using `defmt` for logging, I have tildes as output. For now, directly
   using rtt with some macro when features `logging` is enabled
-
 
 ## License
 
