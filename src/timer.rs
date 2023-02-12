@@ -11,9 +11,10 @@ impl<T: Instance> Timer16Mhz<T> {
             .as_timer0()
             .shorts
             .write(|w| w.compare0_clear().enabled().compare0_stop().enabled());
-        timer.as_timer0().prescaler.write(
-            |w| unsafe { w.prescaler().bits(Self::PRESCALER) },
-        );
+        timer
+            .as_timer0()
+            .prescaler
+            .write(|w| unsafe { w.prescaler().bits(Self::PRESCALER) });
         timer.as_timer0().bitmode.write(|w| w.bitmode()._32bit());
         Timer16Mhz(timer)
     }

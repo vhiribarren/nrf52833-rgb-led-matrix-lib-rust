@@ -9,7 +9,7 @@ use microbit::{
     pac::{CLOCK, RTC0},
 };
 
-use crate::{readonly_cell::DynamicReadOnlyCell, log};
+use crate::{log, readonly_cell::DynamicReadOnlyCell};
 
 const DRAW_CYCLE_LOG_PERIOD_MS: u32 = 1_000;
 

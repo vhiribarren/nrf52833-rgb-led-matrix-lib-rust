@@ -25,10 +25,10 @@ SOFTWARE.
 #![no_std]
 
 pub mod canvas;
-pub mod metrics;
-pub mod readonly_cell;
 pub mod fonts;
 pub mod ledmatrix;
+pub mod metrics;
+pub mod readonly_cell;
 pub mod scheduler;
 pub mod timer;
 
