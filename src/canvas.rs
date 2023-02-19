@@ -101,8 +101,15 @@ impl Default for TextOptions {
     }
 }
 
+#[derive(Default)]
+pub enum BlendMode {
+    #[default]
+    TransparentBlack,
+    Replace,
+}
+
 #[derive(Clone)]
-pub struct Canvas<const WIDTH: usize, const HEIGHT: usize>([[Color; WIDTH]; HEIGHT]);
+pub struct Canvas<const WIDTH: usize, const HEIGHT: usize>(pub(crate) [[Color; WIDTH]; HEIGHT]);
 
 impl Canvas<64, 32> {
     pub const fn with_64x32() -> Self {
@@ -157,6 +164,30 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
     pub fn draw_pixel(&mut self, x: usize, y: usize, color: Color) -> &mut Self {
         if x < WIDTH && y < HEIGHT {
             self.0[y][x] = color;
+        }
+        self
+    }
+    pub fn draw_canvas<const W: usize, const H: usize>(
+        &mut self,
+        x: usize,
+        y: usize,
+        canvas: &Canvas<W, H>,
+        blend_mode: BlendMode,
+    ) -> &mut Self {
+        let canvas_array = canvas.as_ref();
+        let y_max = min(y + H, HEIGHT);
+        let x_max = min(x + W, WIDTH);
+        for (model_y_pos, canvas_y_pos) in (y..y_max).enumerate() {
+            for (model_x_pos, canvas_x_pos) in (x..x_max).enumerate() {
+                let point_color = canvas_array[model_y_pos][model_x_pos];
+                match blend_mode {
+                    BlendMode::TransparentBlack => match point_color {
+                        val if val == Color::BLACK => continue,
+                        _ => self.0[canvas_y_pos][canvas_x_pos] = point_color,
+                    },
+                    BlendMode::Replace => self.0[canvas_y_pos][canvas_x_pos] = point_color,
+                }
+            }
         }
         self
     }

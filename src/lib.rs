@@ -28,6 +28,7 @@ pub mod canvas;
 pub mod fonts;
 pub mod ledmatrix;
 pub mod metrics;
+pub mod models;
 pub mod readonly_cell;
 pub mod scheduler;
 pub mod timer;
