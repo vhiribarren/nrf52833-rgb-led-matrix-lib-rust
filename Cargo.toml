@@ -2,6 +2,14 @@
 name = "microbit-led-matrix"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+authors = ["Vincent Hiribarren"]
+description = "Library to use a RGB LED matrix panel with the BBC micro:bit v2"
+homepage = "https://github.com/vhiribarren/microbit-led-matrix-lib-rust/"
+repository = "https://github.com/vhiribarren/microbit-led-matrix-lib-rust/"
+readme = "README.md"
+keywords = ["microbit", "led", "matrix", "panel"]
+categories = ["embedded", "hardware-support", "no-std", "no-std::no-alloc"]
 
 [features]
 logging = ["dep:rtt-target", "dep:panic-rtt-target"]
