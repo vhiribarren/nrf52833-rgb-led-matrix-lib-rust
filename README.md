@@ -35,7 +35,7 @@ frequent refreshes, which will be impeded by the unoptimized code version.
 
 Some examples are also presents in the `examples/` directory. To use them:
 
-    $ cargo embed --release --example hello-world-blink
+    $ cargo embed --release --example hello_world_blink
 
 [Discovery Book]: https://docs.rust-embedded.org/discovery/
 
