@@ -22,6 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+#![no_main]
+#![no_std]
+
 use cortex_m_rt::entry;
 
 use microbit::hal::gpio;

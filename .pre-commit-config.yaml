@@ -17,15 +17,15 @@ repos:
             pass_filenames: false
 
           - id: cargo-check-no-features
-            name: cargo check
-            entry: cargo check
+            name: cargo check --release --bins --lib --examples
+            entry: cargo check --release --bins --lib --examples
             language: system
             files: \.rs$
             pass_filenames: false
 
-          - id: cargo-check-logging
-            name: cargo check --features logging
-            entry: cargo check --features logging
+          - id: cargo-check-with-features
+            name: cargo check --release --bins --lib --examples --all-features
+            entry: cargo check --release --bins --lib --examples --all-features
             language: system
             files: \.rs$
             pass_filenames: false

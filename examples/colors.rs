@@ -22,14 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#![no_main]
+#![no_std]
+
 use cortex_m_rt::entry;
 
 use microbit::hal::gpio;
-use microbit::hal::timer::Timer;
 use microbit_led_matrix::canvas::Color;
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 
 use microbit_led_matrix::scheduler::ScheduledLedMatrix;
+use microbit_led_matrix::timer::Timer16Mhz;
 use panic_halt as _;
 
 #[entry]
@@ -55,7 +58,7 @@ fn main() -> ! {
         oe: p0.p0_12.into(),
     });
 
-    let scheduled_let_matrix = ScheduledLedMatrix::take_ref(m, Timer::new(peripherals.TIMER0));
+    let scheduled_let_matrix = ScheduledLedMatrix::take_ref(m, Timer16Mhz::new(peripherals.TIMER0));
 
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_scheduled_led_matrix = scheduled_let_matrix.borrow(cs).borrow_mut();

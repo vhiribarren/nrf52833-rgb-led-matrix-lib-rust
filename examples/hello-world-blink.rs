@@ -28,12 +28,12 @@ SOFTWARE.
 use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 
-use microbit::hal::timer::Timer;
 use microbit::hal::{gpio, Delay};
 use microbit_led_matrix::canvas::{Canvas, Color};
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 
 use microbit_led_matrix::scheduler::ScheduledLedMatrix;
+use microbit_led_matrix::timer::Timer16Mhz;
 use panic_halt as _;
 
 const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
@@ -63,7 +63,7 @@ fn main() -> ! {
         oe: p0.p0_12.into(),
     });
 
-    let scheduled_let_matrix = ScheduledLedMatrix::take_ref(m, Timer::new(peripherals.TIMER0));
+    let scheduled_let_matrix = ScheduledLedMatrix::take_ref(m, Timer16Mhz::new(peripherals.TIMER0));
 
     let mut next_canvas = Canvas::with_64x32();
 
