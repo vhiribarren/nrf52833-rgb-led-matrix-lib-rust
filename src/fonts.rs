@@ -22,14 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+use crate::canvas::{Stencil, Stencil5x7};
+
 pub trait Font<const W: usize, const H: usize> {
-    fn stencil_for(&self, c: char) -> &'static [[u8; W]; H];
+    fn stencil_for(&self, c: char) -> &'static Stencil<W, H>;
 }
 
 pub struct Font5x7;
 
 impl Font<5, 7> for Font5x7 {
-    fn stencil_for(&self, c: char) -> &'static [[u8; 5]; 7] {
+    fn stencil_for(&self, c: char) -> &'static Stencil5x7 {
         match c {
             '0' => &Self::N_0,
             '2' => &Self::N_2,
@@ -53,7 +55,7 @@ impl Font<5, 7> for Font5x7 {
 }
 
 impl Font5x7 {
-    pub const ANY: [[u8; 5]; 7] = [
+    pub const ANY: Stencil5x7 = Stencil([
         [1, 1, 1, 1, 1],
         [1, 0, 0, 0, 1],
         [1, 1, 0, 1, 1],
@@ -61,9 +63,9 @@ impl Font5x7 {
         [1, 1, 0, 1, 1],
         [1, 0, 0, 0, 1],
         [1, 1, 1, 1, 1],
-    ];
+    ]);
 
-    pub const N_0: [[u8; 5]; 7] = [
+    pub const N_0: Stencil5x7 = Stencil([
         [0, 1, 1, 1, 0],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -71,9 +73,9 @@ impl Font5x7 {
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [0, 1, 1, 1, 0],
-    ];
+    ]);
 
-    pub const N_2: [[u8; 5]; 7] = [
+    pub const N_2: Stencil5x7 = Stencil([
         [1, 1, 1, 1, 0],
         [0, 0, 0, 0, 1],
         [0, 0, 0, 0, 1],
@@ -81,9 +83,9 @@ impl Font5x7 {
         [1, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
         [1, 1, 1, 1, 1],
-    ];
+    ]);
 
-    pub const N_3: [[u8; 5]; 7] = [
+    pub const N_3: Stencil5x7 = Stencil([
         [1, 1, 1, 1, 0],
         [0, 0, 0, 0, 1],
         [0, 0, 0, 0, 1],
@@ -91,9 +93,9 @@ impl Font5x7 {
         [0, 0, 0, 0, 1],
         [0, 0, 0, 0, 1],
         [1, 1, 1, 1, 0],
-    ];
+    ]);
 
-    pub const A: [[u8; 5]; 7] = [
+    pub const A: Stencil5x7 = Stencil([
         [0, 1, 1, 1, 0],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -101,9 +103,9 @@ impl Font5x7 {
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
-    ];
+    ]);
 
-    pub const B: [[u8; 5]; 7] = [
+    pub const B: Stencil5x7 = Stencil([
         [1, 1, 1, 1, 0],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -111,9 +113,9 @@ impl Font5x7 {
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [1, 1, 1, 1, 0],
-    ];
+    ]);
 
-    pub const C: [[u8; 5]; 7] = [
+    pub const C: Stencil5x7 = Stencil([
         [0, 1, 1, 1, 0],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 0],
@@ -121,8 +123,8 @@ impl Font5x7 {
         [1, 0, 0, 0, 0],
         [1, 0, 0, 0, 1],
         [0, 1, 1, 1, 0],
-    ];
-    pub const D: [[u8; 5]; 7] = [
+    ]);
+    pub const D: Stencil5x7 = Stencil([
         [1, 1, 1, 1, 0],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -130,8 +132,8 @@ impl Font5x7 {
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [1, 1, 1, 1, 0],
-    ];
-    pub const E: [[u8; 5]; 7] = [
+    ]);
+    pub const E: Stencil5x7 = Stencil([
         [1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
@@ -139,8 +141,8 @@ impl Font5x7 {
         [1, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
         [1, 1, 1, 1, 1],
-    ];
-    pub const H: [[u8; 5]; 7] = [
+    ]);
+    pub const H: Stencil5x7 = Stencil([
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -148,8 +150,8 @@ impl Font5x7 {
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
-    ];
-    pub const L: [[u8; 5]; 7] = [
+    ]);
+    pub const L: Stencil5x7 = Stencil([
         [1, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
@@ -157,8 +159,8 @@ impl Font5x7 {
         [1, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
         [1, 1, 1, 1, 1],
-    ];
-    pub const N: [[u8; 5]; 7] = [
+    ]);
+    pub const N: Stencil5x7 = Stencil([
         [1, 0, 0, 0, 1],
         [1, 1, 0, 0, 1],
         [1, 1, 1, 0, 1],
@@ -166,8 +168,8 @@ impl Font5x7 {
         [1, 0, 1, 1, 1],
         [1, 0, 0, 1, 1],
         [1, 0, 0, 0, 1],
-    ];
-    pub const O: [[u8; 5]; 7] = [
+    ]);
+    pub const O: Stencil5x7 = Stencil([
         [0, 1, 1, 1, 0],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -175,8 +177,8 @@ impl Font5x7 {
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [0, 1, 1, 1, 0],
-    ];
-    pub const R: [[u8; 5]; 7] = [
+    ]);
+    pub const R: Stencil5x7 = Stencil([
         [1, 1, 1, 1, 0],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -184,8 +186,8 @@ impl Font5x7 {
         [1, 0, 1, 0, 0],
         [1, 0, 0, 1, 0],
         [1, 0, 0, 0, 1],
-    ];
-    pub const T: [[u8; 5]; 7] = [
+    ]);
+    pub const T: Stencil5x7 = Stencil([
         [1, 1, 1, 1, 1],
         [0, 0, 1, 0, 0],
         [0, 0, 1, 0, 0],
@@ -193,9 +195,9 @@ impl Font5x7 {
         [0, 0, 1, 0, 0],
         [0, 0, 1, 0, 0],
         [0, 0, 1, 0, 0],
-    ];
+    ]);
 
-    pub const U: [[u8; 5]; 7] = [
+    pub const U: Stencil5x7 = Stencil([
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -203,9 +205,9 @@ impl Font5x7 {
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [0, 1, 1, 1, 0],
-    ];
+    ]);
 
-    pub const V: [[u8; 5]; 7] = [
+    pub const V: Stencil5x7 = Stencil([
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -213,9 +215,9 @@ impl Font5x7 {
         [0, 1, 0, 1, 0],
         [0, 1, 0, 1, 0],
         [0, 0, 1, 0, 0],
-    ];
+    ]);
 
-    pub const W: [[u8; 5]; 7] = [
+    pub const W: Stencil5x7 = Stencil([
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
@@ -223,5 +225,5 @@ impl Font5x7 {
         [1, 0, 1, 0, 1],
         [1, 0, 1, 0, 1],
         [0, 1, 0, 1, 0],
-    ];
+    ]);
 }

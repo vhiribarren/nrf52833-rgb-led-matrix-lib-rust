@@ -26,6 +26,10 @@ use core::{cmp::min, ops::Mul};
 
 use crate::fonts::Font;
 
+pub type Stencil5x7 = Stencil<5, 7>;
+
+pub struct Stencil<const W: usize, const H: usize>(pub [[u8; W]; H]);
+
 #[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "logging", derive(Debug))]
 pub struct Color([u8; 3]);
@@ -195,14 +199,14 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         &mut self,
         x: usize,
         y: usize,
-        model: &[[u8; W]; H],
+        model: &Stencil<W, H>,
         color: Color,
     ) -> &mut Self {
         let y_max = min(y + H, HEIGHT);
         let x_max = min(x + W, WIDTH);
         for (model_y_pos, canvas_y_pos) in (y..y_max).enumerate() {
             for (model_x_pos, canvas_x_pos) in (x..x_max).enumerate() {
-                match model[model_y_pos][model_x_pos] {
+                match model.0[model_y_pos][model_x_pos] {
                     val if val == 0 => continue,
                     _ => self.0[canvas_y_pos][canvas_x_pos] = color,
                 }
@@ -221,7 +225,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
     ) -> &mut Self {
         for (idx, c) in text.chars().enumerate() {
             let stencil = font.stencil_for(c);
-            let stencil_width = stencil[0].len();
+            let stencil_width = stencil.0[0].len();
             self.draw_stencil(
                 x + idx * (stencil_width + opts.interspace),
                 y,
