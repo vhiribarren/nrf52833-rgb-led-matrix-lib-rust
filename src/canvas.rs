@@ -27,6 +27,7 @@ use core::{cmp::min, ops::Mul};
 use crate::fonts::Font;
 
 pub type Stencil5x7 = Stencil<5, 7>;
+pub type Stencil8x16 = Stencil<8, 16>;
 
 pub struct Stencil<const W: usize, const H: usize>(pub [[u8; W]; H]);
 
