@@ -32,6 +32,7 @@ pub mod models;
 pub mod readonly_cell;
 pub mod scheduler;
 pub mod timer;
+pub mod utils;
 
 pub type MatrixTimer = microbit::pac::TIMER0;
 pub const MATRIX_TIMER_INTERRUPT: microbit::pac::Interrupt = microbit::hal::pac::interrupt::TIMER0;

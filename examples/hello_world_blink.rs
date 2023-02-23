@@ -28,13 +28,9 @@ SOFTWARE.
 use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 
-use microbit::hal::{gpio, Delay};
+use microbit::hal::Delay;
 use microbit_led_matrix::canvas::{Canvas, Color};
-use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
-
-use microbit_led_matrix::scheduler::ScheduledLedMatrix;
-use microbit_led_matrix::timer::Timer16Mhz;
-use panic_halt as _;
+use microbit_led_matrix::init_scheduled_led_matrix;
 
 const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
 
@@ -43,43 +39,24 @@ fn main() -> ! {
     let peripherals = microbit::Peripherals::take().unwrap();
     let core_periphs = microbit::pac::CorePeripherals::take().unwrap();
 
+    let scheduled_led_matrix = init_scheduled_led_matrix!(peripherals);
+
     let mut delay = Delay::new(core_periphs.SYST);
-    let p0 = gpio::p0::Parts::new(peripherals.P0);
-    let p1 = gpio::p1::Parts::new(peripherals.P1);
-
-    let m = LedMatrix::new(LedMatrixPins64x32 {
-        r1: p0.p0_02.into(),
-        g1: p0.p0_03.into(),
-        b1: p0.p0_04.into(),
-        r2: p0.p0_31.into(),
-        g2: p0.p0_28.into(),
-        b2: p0.p0_14.into(),
-        a: p1.p1_05.into(),
-        b: p0.p0_11.into(),
-        c: p0.p0_10.into(),
-        d: p0.p0_09.into(),
-        clk: p0.p0_30.into(),
-        lat: p0.p0_23.into(),
-        oe: p0.p0_12.into(),
-    });
-
-    let scheduled_let_matrix = ScheduledLedMatrix::take_ref(m, Timer16Mhz::new(peripherals.TIMER0));
 
     let mut next_canvas = Canvas::with_64x32();
 
     cortex_m::interrupt::free(|cs| {
-        let mut borrowed_scheduled_led_matrix = scheduled_let_matrix.borrow(cs).borrow_mut();
+        let mut borrowed_scheduled_led_matrix = scheduled_led_matrix.borrow(cs).borrow_mut();
         let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
         next_canvas.draw_text(1, 1, "HELLO", Color::RED);
         led_matrix.swap_canvas(&mut next_canvas);
         next_canvas.draw_text(1, 1, "WORLD", Color::BLUE);
-        led_matrix.start_rendering_loop();
     });
 
     loop {
         delay.delay_us(CANVAS_SWITCH_DELAY_MICROSEC);
         cortex_m::interrupt::free(|cs| {
-            let mut borrowed_scheduled_led_matrix = scheduled_let_matrix.borrow(cs).borrow_mut();
+            let mut borrowed_scheduled_led_matrix = scheduled_led_matrix.borrow(cs).borrow_mut();
             let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
             led_matrix.swap_canvas(&mut next_canvas);
         });

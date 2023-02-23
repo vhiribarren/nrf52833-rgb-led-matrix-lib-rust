@@ -32,8 +32,12 @@ use cortex_m::interrupt::Mutex;
 
 use microbit::hal::pac::interrupt;
 
-static SCHEDULED_LED_MATRIX: Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> =
-    Mutex::new(RefCell::new(None));
+pub type SharedScheduledMatrix<const L: usize, const W: usize, const H: usize> =
+    Mutex<RefCell<Option<ScheduledLedMatrix<L, W, H>>>>;
+
+pub type SharedScheduledMatrix64x32 = SharedScheduledMatrix<4, 64, 32>;
+
+static SCHEDULED_LED_MATRIX: SharedScheduledMatrix64x32 = Mutex::new(RefCell::new(None));
 
 const BCM_CYCLES_NB: u8 = 2; // min is 1
 const BCM_BASE_PERIOD_MICROSEC: u32 = 1;
@@ -99,7 +103,7 @@ impl ScheduledLedMatrix<4, 64, 32> {
     pub fn take_ref(
         led_matrix: LedMatrix<4, 64, 32>,
         timer: Timer16Mhz<MatrixTimer>,
-    ) -> &'static Mutex<RefCell<Option<ScheduledLedMatrix<4, 64, 32>>>> {
+    ) -> &'static SharedScheduledMatrix64x32 {
         cortex_m::interrupt::free(|cs| {
             let borrowed_scheduled_matrix = SCHEDULED_LED_MATRIX.borrow(cs);
             if borrowed_scheduled_matrix.borrow().is_some() {

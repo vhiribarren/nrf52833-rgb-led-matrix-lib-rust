@@ -22,6 +22,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+//! If there are not regular switch between two elements of A, B, C or D, the panel shutdown.
+//! A minimal block like this one is needed to allow the system working:
+//!
+//!     loop {
+//!          pin_a.set_low().unwrap();
+//!          pin_a.set_high().unwrap();
+//!     }
+//!
+//! Correct order is:
+//!
+//!     for _ in range(64):
+//!         select colors
+//!         clock it, H then L
+//!     set OE to H
+//!     select A, B, C, D
+//!     set latch to H
+//!     set latch to L
+//!     set OE to L
+
 use crate::canvas::Canvas;
 use crate::timer::Timer16Mhz;
 use crate::MatrixTimer;
