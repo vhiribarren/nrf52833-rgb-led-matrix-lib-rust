@@ -30,6 +30,7 @@ use cortex_m_rt::entry;
 
 use microbit::hal::Delay;
 use microbit_led_matrix::canvas::{Canvas, Color};
+use microbit_led_matrix::fonts::Font5x7;
 use microbit_led_matrix::init_scheduled_led_matrix;
 
 const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
@@ -48,9 +49,9 @@ fn main() -> ! {
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_scheduled_led_matrix = scheduled_led_matrix.borrow(cs).borrow_mut();
         let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
-        next_canvas.draw_text(1, 1, "HELLO", Color::RED);
+        next_canvas.draw_text(1, 1, "HELLO", Color::RED, Font5x7);
         led_matrix.swap_canvas(&mut next_canvas);
-        next_canvas.draw_text(1, 1, "WORLD", Color::BLUE);
+        next_canvas.draw_text(1, 1, "WORLD", Color::BLUE, Font5x7);
     });
 
     loop {

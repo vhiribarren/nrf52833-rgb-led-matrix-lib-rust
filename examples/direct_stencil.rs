@@ -29,7 +29,7 @@ use cortex_m_rt::entry;
 
 use microbit::hal::gpio;
 use microbit_led_matrix::canvas::{Canvas, Color};
-use microbit_led_matrix::fonts::font5x7;
+use microbit_led_matrix::fonts::Font5x7;
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 use panic_halt as _;
 
@@ -57,22 +57,22 @@ fn main() -> ! {
 
     let mut canvas = Canvas::with_64x32();
 
-    canvas.draw_stencil(0, 8, &font5x7::B, Color::RED);
-    canvas.draw_stencil(6, 8, &font5x7::O, Color::RED);
-    canvas.draw_stencil(12, 8, &font5x7::N, Color::RED);
-    canvas.draw_stencil(18, 8, &font5x7::N, Color::RED);
-    canvas.draw_stencil(24, 8, &font5x7::E, Color::RED);
+    canvas.draw_stencil(0, 8, &Font5x7::B, Color::RED);
+    canvas.draw_stencil(6, 8, &Font5x7::O, Color::RED);
+    canvas.draw_stencil(12, 8, &Font5x7::N, Color::RED);
+    canvas.draw_stencil(18, 8, &Font5x7::N, Color::RED);
+    canvas.draw_stencil(24, 8, &Font5x7::E, Color::RED);
 
-    canvas.draw_stencil(0, 16, &font5x7::A, Color::BLUE);
-    canvas.draw_stencil(6, 16, &font5x7::N, Color::BLUE);
-    canvas.draw_stencil(12, 16, &font5x7::N, Color::BLUE);
-    canvas.draw_stencil(18, 16, &font5x7::E, Color::BLUE);
-    canvas.draw_stencil(24, 16, &font5x7::E, Color::BLUE);
+    canvas.draw_stencil(0, 16, &Font5x7::A, Color::BLUE);
+    canvas.draw_stencil(6, 16, &Font5x7::N, Color::BLUE);
+    canvas.draw_stencil(12, 16, &Font5x7::N, Color::BLUE);
+    canvas.draw_stencil(18, 16, &Font5x7::E, Color::BLUE);
+    canvas.draw_stencil(24, 16, &Font5x7::E, Color::BLUE);
 
-    canvas.draw_stencil(34, 12, &font5x7::N_2, Color::WHITE);
-    canvas.draw_stencil(40, 12, &font5x7::N_0, Color::WHITE);
-    canvas.draw_stencil(46, 12, &font5x7::N_2, Color::WHITE);
-    canvas.draw_stencil(52, 12, &font5x7::N_3, Color::WHITE);
+    canvas.draw_stencil(34, 12, &Font5x7::N_2, Color::WHITE);
+    canvas.draw_stencil(40, 12, &Font5x7::N_0, Color::WHITE);
+    canvas.draw_stencil(46, 12, &Font5x7::N_2, Color::WHITE);
+    canvas.draw_stencil(52, 12, &Font5x7::N_3, Color::WHITE);
 
     loop {
         m.draw_canvas(&canvas, Default::default());

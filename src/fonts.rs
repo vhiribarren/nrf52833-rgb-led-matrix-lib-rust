@@ -22,30 +22,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-pub mod font5x7 {
+pub trait Font<const W: usize, const H: usize> {
+    fn stencil_for(&self, c: char) -> &'static [[u8; W]; H];
+}
 
-    pub fn stencil_for(c: char) -> &'static [[u8; 5]; 7] {
+pub struct Font5x7;
+
+impl Font<5, 7> for Font5x7 {
+    fn stencil_for(&self, c: char) -> &'static [[u8; 5]; 7] {
         match c {
-            '0' => &N_0,
-            '2' => &N_2,
-            'a' | 'A' => &A,
-            'b' | 'B' => &B,
-            'c' | 'C' => &C,
-            'd' | 'D' => &D,
-            'e' | 'E' => &E,
-            'h' | 'H' => &H,
-            'l' | 'L' => &L,
-            'n' | 'N' => &N,
-            'o' | 'O' => &O,
-            'r' | 'R' => &R,
-            't' | 'T' => &T,
-            'u' | 'U' => &U,
-            'v' | 'V' => &V,
-            'w' | 'W' => &W,
-            _ => &ANY,
+            '0' => &Self::N_0,
+            '2' => &Self::N_2,
+            'a' | 'A' => &Self::A,
+            'b' | 'B' => &Self::B,
+            'c' | 'C' => &Self::C,
+            'd' | 'D' => &Self::D,
+            'e' | 'E' => &Self::E,
+            'h' | 'H' => &Self::H,
+            'l' | 'L' => &Self::L,
+            'n' | 'N' => &Self::N,
+            'o' | 'O' => &Self::O,
+            'r' | 'R' => &Self::R,
+            't' | 'T' => &Self::T,
+            'u' | 'U' => &Self::U,
+            'v' | 'V' => &Self::V,
+            'w' | 'W' => &Self::W,
+            _ => &Self::ANY,
         }
     }
+}
 
+impl Font5x7 {
     pub const ANY: [[u8; 5]; 7] = [
         [1, 1, 1, 1, 1],
         [1, 0, 0, 0, 1],

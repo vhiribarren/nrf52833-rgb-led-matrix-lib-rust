@@ -24,7 +24,7 @@ SOFTWARE.
 
 use core::{cmp::min, ops::Mul};
 
-use crate::fonts::font5x7;
+use crate::fonts::Font;
 
 #[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "logging", derive(Debug))]
@@ -210,16 +210,17 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         }
         self
     }
-    pub fn draw_text_with_opts(
+    pub fn draw_text_with_opts<const W: usize, const H: usize>(
         &mut self,
         x: usize,
         y: usize,
         text: &str,
         color: Color,
+        font: impl Font<W, H>,
         opts: TextOptions,
     ) -> &mut Self {
         for (idx, c) in text.chars().enumerate() {
-            let stencil = font5x7::stencil_for(c);
+            let stencil = font.stencil_for(c);
             let stencil_width = stencil[0].len();
             self.draw_stencil(
                 x + idx * (stencil_width + opts.interspace),
@@ -231,8 +232,15 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         self
     }
 
-    pub fn draw_text(&mut self, x: usize, y: usize, text: &str, color: Color) -> &mut Self {
-        self.draw_text_with_opts(x, y, text, color, Default::default())
+    pub fn draw_text<const W: usize, const H: usize>(
+        &mut self,
+        x: usize,
+        y: usize,
+        text: &str,
+        color: Color,
+        font: impl Font<W, H>,
+    ) -> &mut Self {
+        self.draw_text_with_opts(x, y, text, color, font, Default::default())
     }
 }
 
