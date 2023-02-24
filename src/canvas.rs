@@ -149,6 +149,9 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         }
         self
     }
+    pub fn clear(&mut self) -> &mut Self {
+        self.clear_with_color(Color::BLACK)
+    }
     pub fn draw_rectangle(
         &mut self,
         x: usize,
@@ -234,6 +237,53 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
                 color,
             );
         }
+        self
+    }
+
+    pub fn draw_number<const W: usize, const H: usize>(
+        &mut self,
+        x: usize,
+        y: usize,
+        number: u32,
+        color: Color,
+        font: impl Font<W, H>,
+        opts: TextOptions,
+    ) -> &mut Self {
+        let mut digit_nb = 1;
+        let mut remain = number;
+        while remain > 9 {
+            digit_nb += 1;
+            remain = remain / 10;
+        }
+        let digit_nb = digit_nb;
+        let mut to_draw = number;
+        for idx in 0..digit_nb {
+            let divisor = 10_u32.pow(digit_nb - idx - 1);
+            let extracted_digit = to_draw / divisor;
+            let extracted_digit_char = char::from_digit(extracted_digit, 10).unwrap();
+            to_draw = to_draw - extracted_digit * divisor;
+            let stencil = font.stencil_for(extracted_digit_char);
+            let stencil_width = stencil.0[0].len();
+            self.draw_stencil(
+                x + (idx as usize) * (stencil_width + opts.interspace),
+                y,
+                stencil,
+                color,
+            );
+        }
+        self
+    }
+
+    pub fn draw_char<const W: usize, const H: usize>(
+        &mut self,
+        x: usize,
+        y: usize,
+        c: char,
+        color: Color,
+        font: impl Font<W, H>,
+    ) -> &mut Self {
+        let stencil = font.stencil_for(c);
+        self.draw_stencil(x, y, stencil, color);
         self
     }
 
