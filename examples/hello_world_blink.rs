@@ -28,10 +28,10 @@ SOFTWARE.
 use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 
-use microbit_led_matrix::canvas::{Canvas, Color, TextOptions};
-use microbit_led_matrix::fonts::Font5x7;
-use microbit_led_matrix::init_scheduled_led_matrix;
 use nrf52833_hal::Delay;
+use nrf52833_led_matrix::canvas::{Canvas, Color, TextOptions};
+use nrf52833_led_matrix::fonts::Font5x7;
+use nrf52833_led_matrix::init_scheduled_led_matrix;
 
 const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
 

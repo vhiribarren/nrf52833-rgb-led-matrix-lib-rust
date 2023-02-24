@@ -27,10 +27,10 @@ SOFTWARE.
 
 use cortex_m_rt::entry;
 
-use microbit_led_matrix::fonts::Font8x16;
-use microbit_led_matrix::init_scheduled_led_matrix;
 use nrf52833_hal::prelude::*;
 use nrf52833_hal::Delay;
+use nrf52833_led_matrix::fonts::Font8x16;
+use nrf52833_led_matrix::init_scheduled_led_matrix;
 
 const COUNTER_DELAY_MS: u32 = 1000;
 

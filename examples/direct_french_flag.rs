@@ -27,9 +27,9 @@ SOFTWARE.
 
 use cortex_m_rt::entry;
 
-use microbit_led_matrix::canvas::{Canvas, Color};
-use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 use nrf52833_hal::gpio;
+use nrf52833_led_matrix::canvas::{Canvas, Color};
+use nrf52833_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
 use panic_halt as _;
 
 #[entry]

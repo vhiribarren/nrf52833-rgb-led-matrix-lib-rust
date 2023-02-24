@@ -26,7 +26,7 @@ SOFTWARE.
 #![no_std]
 
 use cortex_m_rt::entry;
-use microbit_led_matrix::{canvas::Color, init_scheduled_led_matrix};
+use nrf52833_led_matrix::{canvas::Color, init_scheduled_led_matrix};
 
 #[entry]
 fn main() -> ! {

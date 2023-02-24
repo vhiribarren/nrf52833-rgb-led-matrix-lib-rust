@@ -132,18 +132,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "microbit-led-matrix"
-version = "0.1.0"
-dependencies = [
- "cortex-m",
- "cortex-m-rt",
- "nrf52833-hal",
- "panic-halt",
- "panic-rtt-target",
- "rtt-target",
-]
-
-[[package]]
 name = "nb"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -199,6 +187,18 @@ dependencies = [
  "embedded-hal",
  "nrf-hal-common",
  "nrf52833-pac",
+]
+
+[[package]]
+name = "nrf52833-led-matrix"
+version = "0.1.0"
+dependencies = [
+ "cortex-m",
+ "cortex-m-rt",
+ "nrf52833-hal",
+ "panic-halt",
+ "panic-rtt-target",
+ "rtt-target",
 ]
 
 [[package]]
