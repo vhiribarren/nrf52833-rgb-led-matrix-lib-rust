@@ -45,7 +45,7 @@ macro_rules! init_scheduled_led_matrix {
             use nrf52833_rgb_led_matrix::metrics::*;
             rtt_target::rtt_init_print!();
             log!("Logging active");
-            let timer_source = init_global_time_source($peripherals.CLOCK, $peripherals.RTC0);
+            let timer_source = init_global_time_source($peripherals.CLOCK, $peripherals.RTC2);
             init_debug_metrics(timer_source);
         }
 
@@ -69,7 +69,7 @@ macro_rules! init_scheduled_led_matrix {
         });
 
         let scheduled_led_matrix =
-            ScheduledLedMatrix::take_ref(m, Timer16Mhz::new($peripherals.TIMER0));
+            ScheduledLedMatrix::take_ref(m, Timer16Mhz::new($peripherals.TIMER4));
 
         cortex_m::interrupt::free(|cs| {
             let mut borrowed_scheduled_led_matrix = scheduled_led_matrix.borrow(cs).borrow_mut();

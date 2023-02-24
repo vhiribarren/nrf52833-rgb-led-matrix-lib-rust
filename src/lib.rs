@@ -34,9 +34,10 @@ pub mod scheduler;
 pub mod timer;
 pub mod utils;
 
-pub type MatrixTimer = nrf52833_hal::pac::TIMER0;
+pub type MetricsRtc = nrf52833_hal::pac::RTC2;
+pub type MatrixTimer = nrf52833_hal::pac::TIMER4;
 pub const MATRIX_TIMER_INTERRUPT: nrf52833_hal::pac::Interrupt =
-    nrf52833_hal::pac::interrupt::TIMER0;
+    nrf52833_hal::pac::interrupt::TIMER4;
 
 #[macro_export]
 macro_rules! enable_interrupts {

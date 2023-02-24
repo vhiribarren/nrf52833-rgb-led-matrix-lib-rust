@@ -2,19 +2,19 @@ use core::cell::RefCell;
 
 use cortex_m::interrupt::Mutex;
 use nrf52833_hal::{
-    pac::{CLOCK, RTC0},
+    pac::CLOCK,
     rtc::{Instance, Rtc},
     Clocks,
 };
 
-use crate::{log, readonly_cell::DynamicReadOnlyCell};
+use crate::{log, readonly_cell::DynamicReadOnlyCell, MetricsRtc};
 
 const DRAW_CYCLE_LOG_PERIOD_MS: u32 = 1_000;
 
-static TIMER_SOURCE: DynamicReadOnlyCell<RTCTimerSource<RTC0>> = DynamicReadOnlyCell::new();
+static TIMER_SOURCE: DynamicReadOnlyCell<RTCTimerSource<MetricsRtc>> = DynamicReadOnlyCell::new();
 
 type DrawCycleMetric<'a> =
-    Mutex<RefCell<Option<AverageFrequencyMeasure<'a, RTCTimerSource<RTC0>, fn(u32)>>>>;
+    Mutex<RefCell<Option<AverageFrequencyMeasure<'a, RTCTimerSource<MetricsRtc>, fn(u32)>>>>;
 pub(crate) static DRAW_CYCLE_METRICS: DrawCycleMetric = Mutex::new(RefCell::new(None));
 
 #[allow(unused_variables)]
@@ -24,8 +24,8 @@ fn log_image_freq(freq: u32) {
 
 pub fn init_global_time_source(
     clock: CLOCK,
-    rtc_periph: RTC0,
-) -> &'static DynamicReadOnlyCell<RTCTimerSource<RTC0>> {
+    rtc_periph: MetricsRtc,
+) -> &'static DynamicReadOnlyCell<RTCTimerSource<MetricsRtc>> {
     if TIMER_SOURCE.try_get_ref().is_some() {
         return &TIMER_SOURCE;
     }
@@ -37,7 +37,7 @@ pub fn init_global_time_source(
     &TIMER_SOURCE
 }
 
-pub fn init_debug_metrics(timer_source: &'static DynamicReadOnlyCell<RTCTimerSource<RTC0>>) {
+pub fn init_debug_metrics(timer_source: &'static DynamicReadOnlyCell<RTCTimerSource<MetricsRtc>>) {
     cortex_m::interrupt::free(|cs| {
         let mut draw_cycle_measure_borrow = DRAW_CYCLE_METRICS.borrow(cs).borrow_mut();
         let avg_freq_measure = AverageFrequencyMeasure::new(

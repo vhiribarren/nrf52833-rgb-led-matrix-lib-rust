@@ -153,7 +153,7 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     }
 
     pub fn draw_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>, bit_position: ColorBitPosition) {
-        // Here, the usage of the TIMER0 is completely fake, it is just to have the right type when using None
+        // Here, the usage of the TIMER4 is completely fake, it is just to have the right type when using None
         // Is it possible to have something less far-fetched?
         // Implmenting a dummy struct to reference its type seems not possible since microbit::hal::timer::Instance is a sealed trait.
         self.draw_canvas_with_delay_buffer(

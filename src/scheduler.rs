@@ -43,7 +43,7 @@ const BCM_CYCLES_NB: u8 = 2; // min is 1
 const BCM_BASE_PERIOD_MICROSEC: u32 = 1;
 
 #[interrupt]
-fn TIMER0() {
+fn TIMER4() {
     static mut CYCLE_STEP: u8 = 0;
     static mut LINE_STEP: usize = 0;
 
