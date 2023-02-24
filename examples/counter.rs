@@ -29,7 +29,8 @@ use cortex_m_rt::entry;
 
 use microbit::hal::prelude::*;
 use microbit::hal::Delay;
-use microbit_led_matrix::{fonts::Font5x7, init_scheduled_led_matrix};
+use microbit_led_matrix::fonts::Font8x16;
+use microbit_led_matrix::init_scheduled_led_matrix;
 
 const COUNTER_DELAY_MS: u32 = 1000;
 
@@ -48,7 +49,7 @@ fn main() -> ! {
             let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
             let canvas = led_matrix.borrow_mut_canvas();
             canvas.clear();
-            canvas.draw_number(0, 0, counter, Font5x7, Default::default());
+            canvas.draw_number(0, 0, counter, Font8x16, Default::default());
         });
 
         delay.delay_ms(COUNTER_DELAY_MS);
