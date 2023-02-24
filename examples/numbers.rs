@@ -30,7 +30,7 @@ use microbit_led_matrix::{fonts::Font5x7, init_scheduled_led_matrix};
 
 #[entry]
 fn main() -> ! {
-    let peripherals = microbit::Peripherals::take().unwrap();
+    let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
     let scheduled_led_matrix = init_scheduled_led_matrix!(peripherals);
 
     cortex_m::interrupt::free(|cs| {

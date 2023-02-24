@@ -8,7 +8,7 @@ description = "Library to use a RGB LED matrix panel with the BBC micro:bit v2"
 homepage = "https://github.com/vhiribarren/microbit-led-matrix-lib-rust/"
 repository = "https://github.com/vhiribarren/microbit-led-matrix-lib-rust/"
 readme = "README.md"
-keywords = ["microbit", "led", "matrix", "panel"]
+keywords = ["nRF52833", "microbit", "led", "matrix", "panel"]
 categories = ["embedded", "hardware-support", "no-std", "no-std::no-alloc"]
 
 [features]
@@ -17,7 +17,7 @@ logging = ["dep:rtt-target", "dep:panic-rtt-target"]
 [dependencies]
 cortex-m-rt = "0.7.0"
 cortex-m = "0.7.6"
-microbit-v2 = "0.13.0"
+nrf52833-hal = "0.16.0"
 panic-halt = "0.2.0"
 rtt-target = { version = "0.3.1", features = ["cortex-m"], optional = true }
 panic-rtt-target = { version = "0.1.2", features = ["cortex-m"], optional = true }

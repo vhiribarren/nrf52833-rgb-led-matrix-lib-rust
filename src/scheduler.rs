@@ -30,7 +30,7 @@ use crate::timer::Timer16Mhz;
 use crate::{enable_interrupts, log, MatrixTimer, MATRIX_TIMER_INTERRUPT};
 use cortex_m::interrupt::Mutex;
 
-use microbit::hal::pac::interrupt;
+use nrf52833_hal::pac::interrupt;
 
 pub type SharedScheduledMatrix<const L: usize, const W: usize, const H: usize> =
     Mutex<RefCell<Option<ScheduledLedMatrix<L, W, H>>>>;

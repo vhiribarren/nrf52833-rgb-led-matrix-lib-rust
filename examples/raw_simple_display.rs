@@ -26,9 +26,8 @@ SOFTWARE.
 #![no_std]
 
 use cortex_m_rt::entry;
-use microbit::board::Board;
-use microbit::hal::gpio::Level;
-use microbit::hal::prelude::*;
+use nrf52833_hal::gpio::{self, Level};
+use nrf52833_hal::prelude::*;
 use panic_halt as _;
 
 /*
@@ -53,21 +52,23 @@ Correct order is:
 
 #[entry]
 fn main() -> ! {
-    let board = Board::take().unwrap();
+    let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
+    let p0 = gpio::p0::Parts::new(peripherals.P0);
+    let p1 = gpio::p1::Parts::new(peripherals.P1);
 
-    let mut pin_r1 = board.pins.p0_02.into_push_pull_output(Level::Low);
-    let mut pin_g1 = board.pins.p0_03.into_push_pull_output(Level::Low);
-    let mut pin_b1 = board.pins.p0_04.into_push_pull_output(Level::Low);
-    let mut pin_r2 = board.display_pins.col3.into_push_pull_output(Level::Low);
-    let mut pin_g2 = board.display_pins.col1.into_push_pull_output(Level::Low);
-    let mut pin_b2 = board.buttons.button_a.into_push_pull_output(Level::Low);
-    let mut pin_a = board.display_pins.col4.into_push_pull_output(Level::Low);
-    let mut pin_b = board.display_pins.col2.into_push_pull_output(Level::Low);
-    let mut pin_c = board.pins.p0_10.into_push_pull_output(Level::Low);
-    let mut pin_d = board.pins.p0_09.into_push_pull_output(Level::Low);
-    let mut pin_clk = board.display_pins.col5.into_push_pull_output(Level::Low);
-    let mut pin_lat = board.buttons.button_b.into_push_pull_output(Level::Low);
-    let mut pin_oe = board.pins.p0_12.into_push_pull_output(Level::Low);
+    let mut pin_r1 = p0.p0_02.into_push_pull_output(Level::Low);
+    let mut pin_g1 = p0.p0_03.into_push_pull_output(Level::Low);
+    let mut pin_b1 = p0.p0_04.into_push_pull_output(Level::Low);
+    let mut pin_r2 = p0.p0_31.into_push_pull_output(Level::Low);
+    let mut pin_g2 = p0.p0_28.into_push_pull_output(Level::Low);
+    let mut pin_b2 = p0.p0_14.into_push_pull_output(Level::Low);
+    let mut pin_a = p1.p1_05.into_push_pull_output(Level::Low);
+    let mut pin_b = p0.p0_11.into_push_pull_output(Level::Low);
+    let mut pin_c = p0.p0_10.into_push_pull_output(Level::Low);
+    let mut pin_d = p0.p0_09.into_push_pull_output(Level::Low);
+    let mut pin_clk = p0.p0_30.into_push_pull_output(Level::Low);
+    let mut pin_lat = p0.p0_22.into_push_pull_output(Level::Low);
+    let mut pin_oe = p0.p0_12.into_push_pull_output(Level::Low);
 
     for col in 00..64 {
         if col < 64 / 3 {

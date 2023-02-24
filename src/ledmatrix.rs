@@ -44,8 +44,8 @@ SOFTWARE.
 use crate::canvas::Canvas;
 use crate::timer::Timer16Mhz;
 use crate::MatrixTimer;
-use microbit::hal::gpio::{Level, Output, Pin, PushPull};
-use microbit::hal::prelude::*;
+use nrf52833_hal::gpio::{Level, Output, Pin, PushPull};
+use nrf52833_hal::prelude::*;
 
 pub struct LedMatrixPins64x32<MODE> {
     pub r1: Pin<MODE>,
@@ -163,7 +163,7 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         );
     }
 
-    pub fn draw_canvas_with_delay_buffer<T: microbit::hal::timer::Instance>(
+    pub fn draw_canvas_with_delay_buffer<T: nrf52833_hal::timer::Instance>(
         &mut self,
         canvas: &Canvas<WIDTH, HEIGHT>,
         mut timer: Option<&mut Timer16Mhz<T>>,

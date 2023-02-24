@@ -1,12 +1,10 @@
 use core::cell::RefCell;
 
 use cortex_m::interrupt::Mutex;
-use microbit::{
-    hal::{
-        rtc::{Instance, Rtc},
-        Clocks,
-    },
+use nrf52833_hal::{
     pac::{CLOCK, RTC0},
+    rtc::{Instance, Rtc},
+    Clocks,
 };
 
 use crate::{log, readonly_cell::DynamicReadOnlyCell};
@@ -74,7 +72,7 @@ impl<I: Instance> TimerSource for RTCTimerSource<I> {
     }
 
     fn frequency(&self) -> u32 {
-        microbit::hal::clocks::LFCLK_FREQ
+        nrf52833_hal::clocks::LFCLK_FREQ
     }
 }
 

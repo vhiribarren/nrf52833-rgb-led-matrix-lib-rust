@@ -27,14 +27,14 @@ SOFTWARE.
 
 use cortex_m_rt::entry;
 
-use microbit::hal::gpio;
 use microbit_led_matrix::canvas::{Canvas, Color};
 use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
+use nrf52833_hal::gpio;
 use panic_halt as _;
 
 #[entry]
 fn main() -> ! {
-    let peripherals = microbit::Peripherals::take().unwrap();
+    let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
     let p0 = gpio::p0::Parts::new(peripherals.P0);
     let p1 = gpio::p1::Parts::new(peripherals.P1);
 

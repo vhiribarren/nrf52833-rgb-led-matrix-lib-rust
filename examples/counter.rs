@@ -27,19 +27,19 @@ SOFTWARE.
 
 use cortex_m_rt::entry;
 
-use microbit::hal::prelude::*;
-use microbit::hal::Delay;
 use microbit_led_matrix::fonts::Font8x16;
 use microbit_led_matrix::init_scheduled_led_matrix;
+use nrf52833_hal::prelude::*;
+use nrf52833_hal::Delay;
 
 const COUNTER_DELAY_MS: u32 = 1000;
 
 #[entry]
 fn main() -> ! {
-    let peripherals = microbit::Peripherals::take().unwrap();
+    let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
     let scheduled_led_matrix = init_scheduled_led_matrix!(peripherals);
 
-    let core_periphs = microbit::pac::CorePeripherals::take().unwrap();
+    let core_periphs = nrf52833_hal::pac::CorePeripherals::take().unwrap();
     let mut delay = Delay::new(core_periphs.SYST);
     let mut counter = 0;
 

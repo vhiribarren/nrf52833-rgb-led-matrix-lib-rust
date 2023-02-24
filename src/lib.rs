@@ -34,8 +34,9 @@ pub mod scheduler;
 pub mod timer;
 pub mod utils;
 
-pub type MatrixTimer = microbit::pac::TIMER0;
-pub const MATRIX_TIMER_INTERRUPT: microbit::pac::Interrupt = microbit::hal::pac::interrupt::TIMER0;
+pub type MatrixTimer = nrf52833_hal::pac::TIMER0;
+pub const MATRIX_TIMER_INTERRUPT: nrf52833_hal::pac::Interrupt =
+    nrf52833_hal::pac::interrupt::TIMER0;
 
 #[macro_export]
 macro_rules! enable_interrupts {
@@ -43,7 +44,7 @@ macro_rules! enable_interrupts {
         #[allow(unsafe_code)]
         unsafe {
         $(
-            microbit::pac::NVIC::unmask($interrupt_nb);
+            nrf52833_hal::pac::NVIC::unmask($interrupt_nb);
         )*
         }
     };

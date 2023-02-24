@@ -28,17 +28,17 @@ SOFTWARE.
 use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 
-use microbit::hal::Delay;
 use microbit_led_matrix::canvas::{Canvas, Color, TextOptions};
 use microbit_led_matrix::fonts::Font5x7;
 use microbit_led_matrix::init_scheduled_led_matrix;
+use nrf52833_hal::Delay;
 
 const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
 
 #[entry]
 fn main() -> ! {
-    let peripherals = microbit::Peripherals::take().unwrap();
-    let core_periphs = microbit::pac::CorePeripherals::take().unwrap();
+    let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
+    let core_periphs = nrf52833_hal::pac::CorePeripherals::take().unwrap();
 
     let scheduled_led_matrix = init_scheduled_led_matrix!(peripherals);
 

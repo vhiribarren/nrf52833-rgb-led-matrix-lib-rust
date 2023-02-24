@@ -1,11 +1,11 @@
-# RGB LED Matrix usage with BBC Microbit
+# RGB LED Matrix usage with the Cortex-M4 nRF52833
 
 ![used elements](docs/bonne_annee_material.jpg)
 
-The needed elements are:
+The test is done with the following elements:
 
 - a 64x32 [Adafruit matrix panel]
-- a BBC micro:bit v2
+- a BBC micro:bit v2, having a nRF52833 MCU
 - an edge adapter for the micro:bit to plug some Dupont cables
 - a [Adafruit RGB Matrix bonnet] to convert the 3.3V micro:bit GPIO outputs to 5V 
 - various Dupont cables, that I made to select the size and the required male/female connectors

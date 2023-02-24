@@ -29,11 +29,11 @@ SOFTWARE.
 #[macro_export]
 macro_rules! init_scheduled_led_matrix {
     ($peripherals:ident) => {{
-        use microbit::hal::gpio;
         use microbit_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
         use microbit_led_matrix::log;
         use microbit_led_matrix::scheduler::{ScheduledLedMatrix, SharedScheduledMatrix64x32};
         use microbit_led_matrix::timer::Timer16Mhz;
+        use nrf52833_hal::gpio;
 
         #[cfg(not(feature = "logging"))]
         use panic_halt as _;

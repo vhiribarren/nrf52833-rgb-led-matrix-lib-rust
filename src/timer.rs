@@ -1,4 +1,4 @@
-use microbit::hal::timer::Instance;
+use nrf52833_hal::timer::Instance;
 
 pub struct Timer16Mhz<T>(T);
 
