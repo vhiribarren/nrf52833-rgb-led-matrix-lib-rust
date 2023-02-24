@@ -30,10 +30,10 @@ SOFTWARE.
 macro_rules! init_scheduled_led_matrix {
     ($peripherals:ident) => {{
         use nrf52833_hal::gpio;
-        use nrf52833_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
-        use nrf52833_led_matrix::log;
-        use nrf52833_led_matrix::scheduler::{ScheduledLedMatrix, SharedScheduledMatrix64x32};
-        use nrf52833_led_matrix::timer::Timer16Mhz;
+        use nrf52833_rgb_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
+        use nrf52833_rgb_led_matrix::log;
+        use nrf52833_rgb_led_matrix::scheduler::{ScheduledLedMatrix, SharedScheduledMatrix64x32};
+        use nrf52833_rgb_led_matrix::timer::Timer16Mhz;
 
         #[cfg(not(feature = "logging"))]
         use panic_halt as _;
@@ -42,7 +42,7 @@ macro_rules! init_scheduled_led_matrix {
 
         #[cfg(feature = "logging")]
         {
-            use nrf52833_led_matrix::metrics::*;
+            use nrf52833_rgb_led_matrix::metrics::*;
             rtt_target::rtt_init_print!();
             log!("Logging active");
             let timer_source = init_global_time_source($peripherals.CLOCK, $peripherals.RTC0);

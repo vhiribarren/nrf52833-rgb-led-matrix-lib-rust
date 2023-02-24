@@ -26,7 +26,7 @@ SOFTWARE.
 #![no_std]
 
 use cortex_m_rt::entry;
-use nrf52833_led_matrix::{init_scheduled_led_matrix, models};
+use nrf52833_rgb_led_matrix::{init_scheduled_led_matrix, models};
 
 #[entry]
 fn main() -> ! {

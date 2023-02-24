@@ -1,5 +1,5 @@
 [package]
-name = "nrf52833-led-matrix"
+name = "nrf52833-rgb-led-matrix"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
