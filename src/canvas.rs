@@ -98,11 +98,15 @@ impl IntoIterator for Color {
 
 pub struct TextOptions {
     pub interspace: usize,
+    pub color: Color,
 }
 
 impl Default for TextOptions {
     fn default() -> Self {
-        Self { interspace: 1 }
+        Self {
+            interspace: 1,
+            color: Color::WHITE,
+        }
     }
 }
 
@@ -218,12 +222,11 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         }
         self
     }
-    pub fn draw_text_with_opts<const W: usize, const H: usize>(
+    pub fn draw_text<const W: usize, const H: usize>(
         &mut self,
         x: usize,
         y: usize,
         text: &str,
-        color: Color,
         font: impl Font<W, H>,
         opts: TextOptions,
     ) -> &mut Self {
@@ -234,7 +237,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
                 x + idx * (stencil_width + opts.interspace),
                 y,
                 stencil,
-                color,
+                opts.color,
             );
         }
         self
@@ -245,7 +248,6 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         x: usize,
         y: usize,
         number: u32,
-        color: Color,
         font: impl Font<W, H>,
         opts: TextOptions,
     ) -> &mut Self {
@@ -268,7 +270,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
                 x + (idx as usize) * (stencil_width + opts.interspace),
                 y,
                 stencil,
-                color,
+                opts.color,
             );
         }
         self
@@ -285,17 +287,6 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         let stencil = font.stencil_for(c);
         self.draw_stencil(x, y, stencil, color);
         self
-    }
-
-    pub fn draw_text<const W: usize, const H: usize>(
-        &mut self,
-        x: usize,
-        y: usize,
-        text: &str,
-        color: Color,
-        font: impl Font<W, H>,
-    ) -> &mut Self {
-        self.draw_text_with_opts(x, y, text, color, font, Default::default())
     }
 }
 

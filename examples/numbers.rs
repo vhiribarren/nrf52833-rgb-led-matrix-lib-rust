@@ -26,7 +26,7 @@ SOFTWARE.
 #![no_std]
 
 use cortex_m_rt::entry;
-use microbit_led_matrix::{canvas::Color, fonts::Font5x7, init_scheduled_led_matrix};
+use microbit_led_matrix::{fonts::Font5x7, init_scheduled_led_matrix};
 
 #[entry]
 fn main() -> ! {
@@ -37,9 +37,7 @@ fn main() -> ! {
         let mut borrowed_scheduled_led_matrix = scheduled_led_matrix.borrow(cs).borrow_mut();
         let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
         let canvas = led_matrix.borrow_mut_canvas();
-        let w = canvas.width();
-        let h = canvas.height();
-        canvas.draw_text(0, 0, "0123456789", Color::WHITE, Font5x7);
+        canvas.draw_text(0, 0, "0123456789", Font5x7, Default::default());
     });
 
     loop {
