@@ -2,7 +2,8 @@
 name = "icon_generator"
 version = "0.1.0"
 edition = "2021"
-
+authors = ["Vincent Hiribarren"]
+description = "Utility to generate Rust files from images, to be used with the nrf52833-rgb-led-matrix lib"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

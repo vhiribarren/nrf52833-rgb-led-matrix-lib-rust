@@ -37,64 +37,112 @@ enum Mode {
 }
 
 #[derive(Parser)]
+#[command(author, version, about, long_about)]
+/// Utility to generate Rust files from images, to be used with the
+/// nrf52833-rgb-led-matrix lib
+///
+/// It should only be used on tiny images, like 32x32 pixels.
+///
+/// In icon mode, the alpha channel must be above 0.5.
+///
+/// In stencil mode, the alpha channel must be above 0.5, and as long as another
+/// color than white is used, it is considered part of the stencil.
 struct Cli {
-    in_image: PathBuf,
+    /// Input file to convert to Rust code for the nrf52833-rgb-led-matrix lib
+    image_file: PathBuf,
     #[arg(short, long)]
-    out_rust: Option<PathBuf>,
+    /// By default, output to standard output. A file can be declared as output target.
+    output_rust_file: Option<PathBuf>,
+    /// Generate RGB canvas images (icons), or stencils (one color, less heavy)
     #[arg(value_enum, short, long, default_value_t = Mode::Icon)]
     mode: Mode,
+    /// Name of Rust element. By default, try to uppercase and use the filename
     #[arg(short, long)]
     name: Option<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Cli::parse();
-    let image = ImageReader::open(&args.in_image)?.decode()?;
-    let name = match args.name {
+    let image = ImageReader::open(&args.image_file)?
+        .decode()
+        .map_err(|_| "Unsupported image format.")?;
+    let element_name = match args.name {
         Some(n) => n,
         None => args
-            .in_image
+            .image_file
             .file_stem()
-            .unwrap()
+            .ok_or("No file name")?
             .to_os_string()
             .into_string()
-            .unwrap(),
+            .map_err(|_| "Error while converting filename to element name")?,
     }
     .to_uppercase();
     let output_string = match args.mode {
-        Mode::Icon => generate_icon(&image, &name),
-        Mode::Stencil => todo!(),
+        Mode::Icon => generate_icon(&image, &element_name),
+        Mode::Stencil => generate_stencil(&image, &element_name),
     };
-    match args.out_rust {
+    match args.output_rust_file {
         Some(file) => {
             if Path::new(file.as_os_str()).exists() {
-                panic!();
+                return Err(format!("Filename {} already exists", file.display()))?;
             }
             fs::write(file, output_string)?;
         }
-        None => println!("{}", output_string),
+        None => println!("{output_string}"),
     }
     Ok(())
 }
 
-fn generate_icon(image: &DynamicImage, name: &str) -> String {
+#[allow(clippy::single_char_add_str)]
+fn generate_icon(image: &DynamicImage, element_name: &str) -> String {
     let (width, height) = image.dimensions();
-    let mut code = String::new();
-    code.push_str("use crate::canvas::{Canvas, Color};");
-    code.push_str(format!("pub const {name}: Canvas<{width}, {height}> = Canvas([").as_str());
+    let mut array_rows = String::new();
+
     for y in 0..height {
-        code.push_str("[");
+        array_rows.push_str("[");
         for x in 0..width {
             let pixel = image.get_pixel(x, y);
             let [r, g, b, a] = pixel.0;
             if a > u8::MAX / 2 {
-                code.push_str(format!("Color::new({r},{g},{b}),").as_str());
+                array_rows.push_str(format!("Color::new({r},{g},{b}),").as_str());
             } else {
-                code.push_str("Color::BLACK,");
+                array_rows.push_str("Color::BLACK,");
             }
         }
-        code.push_str("],");
+        array_rows.push_str("],");
     }
-    code.push_str("]);");
-    code
+
+    format!(
+        r#"use crate::canvas::{{Canvas, Color}};
+pub const {element_name}: Canvas<{width}, {height}> = Canvas([
+{array_rows}
+]);"#
+    )
+}
+
+#[allow(clippy::single_char_add_str)]
+fn generate_stencil(image: &DynamicImage, element_name: &str) -> String {
+    let (width, height) = image.dimensions();
+    let mut array_rows = String::new();
+
+    for y in 0..height {
+        array_rows.push_str("[");
+        for x in 0..width {
+            let pixel = image.get_pixel(x, y);
+            let [r, g, b, a] = pixel.0;
+            if a > u8::MAX / 2 && r < u8::MAX && g < u8::MAX && b < u8::MAX {
+                array_rows.push_str("1,");
+            } else {
+                array_rows.push_str("0,");
+            }
+        }
+        array_rows.push_str("],");
+    }
+
+    format!(
+        r#"use crate::canvas::Stencil;
+pub const {element_name}: Stencil<{width}, {height}> = Stencil([
+{array_rows}
+]);"#
+    )
 }
