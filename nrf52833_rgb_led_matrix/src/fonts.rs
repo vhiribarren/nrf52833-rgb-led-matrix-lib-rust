@@ -51,6 +51,7 @@ impl Font<5, 7> for Font5x7 {
             'd' | 'D' => &Self::D,
             'e' | 'E' => &Self::E,
             'h' | 'H' => &Self::H,
+            'i' | 'I' => &Self::I,
             'l' | 'L' => &Self::L,
             'n' | 'N' => &Self::N,
             'o' | 'O' => &Self::O,
@@ -250,6 +251,15 @@ impl Font5x7 {
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
         [1, 0, 0, 0, 1],
+    ]);
+    pub const I: Stencil5x7 = Stencil([
+        [1, 1, 1, 1, 1],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [1, 1, 1, 1, 1],
     ]);
     pub const L: Stencil5x7 = Stencil([
         [1, 0, 0, 0, 0],
