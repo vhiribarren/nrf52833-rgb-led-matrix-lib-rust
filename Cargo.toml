@@ -1,7 +1,14 @@
-[package]
-name = "nrf52833-rgb-led-matrix"
+[workspace]
+
+members = [
+    "nrf52833_rgb_led_matrix",
+    "icon_generator",
+]
+
+default-members = []
+
+[workspace.package]
 version = "0.1.0"
-edition = "2021"
 license = "MIT"
 authors = ["Vincent Hiribarren"]
 description = "Library to use a RGB LED matrix panel with a nRF52833 MCU"
@@ -9,15 +16,3 @@ homepage = "https://github.com/vhiribarren/nrf52833-rgb-led-matrix-lib-rust/"
 repository = "https://github.com/vhiribarren/nrf52833-rgb-led-matrix-lib-rust/"
 readme = "README.md"
 keywords = ["nRF52833", "microbit", "led", "matrix", "panel"]
-categories = ["embedded", "hardware-support", "no-std", "no-std::no-alloc"]
-
-[features]
-logging = ["dep:rtt-target", "dep:panic-rtt-target"]
-
-[dependencies]
-cortex-m-rt = "0.7.0"
-cortex-m = "0.7.6"
-nrf52833-hal = "0.16.0"
-panic-halt = "0.2.0"
-rtt-target = { version = "0.3.1", features = ["cortex-m"], optional = true }
-panic-rtt-target = { version = "0.1.2", features = ["cortex-m"], optional = true }

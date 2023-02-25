@@ -9,23 +9,31 @@ repos:
     - repo: local
       hooks:
 
+
           - id: cargo-fmt
-            name: cargo fmt
+            name: "all:  cargo fmt"
             entry: cargo fmt
             language: system
             files: \.rs$
             pass_filenames: false
 
-          - id: cargo-check-no-features
-            name: cargo check --release --bins --lib --examples
-            entry: cargo check --release --bins --lib --examples
+          - id: cargo-check-util
+            name: "util: cargo check"
+            entry: cd icon_generator && cargo check
             language: system
             files: \.rs$
             pass_filenames: false
 
-          - id: cargo-check-with-features
-            name: cargo check --release --bins --lib --examples --all-features
-            entry: cargo check --release --bins --lib --examples --all-features
+          - id: cargo-check-no-features-lib
+            name: "lib:  cargo check --release --bins --lib --examples"
+            entry: cd nrf52833_rgb_led_matrix && cargo check --release --bins --lib --examples
+            language: system
+            files: \.rs$
+            pass_filenames: false
+
+          - id: cargo-check-with-features-lib
+            name: "lib:  cargo check --release --bins --lib --examples --all-features"
+            entry: cd nrf52833_rgb_led_matrix && cargo check --release --bins --lib --examples --all-features
             language: system
             files: \.rs$
             pass_filenames: false
