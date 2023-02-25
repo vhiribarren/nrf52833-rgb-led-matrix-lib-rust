@@ -26,9 +26,18 @@ To deploy, you must set up the tools described in the Rust [Discovery Book]. Not
 **This project is already configured to be specifically deployed on the micro:bit v2.
 The memory map is notably prepared for the nrf52833 chip.**
 
-Once they are installed:
+The project is current split in:
+- `/nrf52833_rgb_led_matrix`: the main library, with some examples
+- `/icon_generator`: a utility to generate Rust code from images
 
-    $ cargo embed --release
+**The Cargo Workspace cannot directly be build, due to some issues in mixing
+compilation targets (the library for ARMv7, and the utility for the local
+computer), you must go in each directory to launch the Cargo commands.**
+
+For instance, to build the library:
+
+    $ cd nrf52833_rgb_led_matrix
+    $ cargo build --release
 
 Unless you need to debug, **you must use the release version**. The matrix needs
 frequent refreshes, which will be impeded by the unoptimized code version.
