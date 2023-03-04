@@ -24,19 +24,15 @@ SOFTWARE.
 
 #![no_std]
 
-pub use cortex_m;
-pub use hal::pac;
-pub use nrf52833_hal as hal;
-
 pub mod canvas;
 pub mod fonts;
+pub mod helpers;
 pub mod ledmatrix;
 pub mod metrics;
 pub mod models;
 pub mod readonly_cell;
 pub mod scheduler;
 pub mod timer;
-pub mod utils;
 
 pub type MetricsRtc = nrf52833_hal::pac::RTC2;
 pub type MatrixTimer = nrf52833_hal::pac::TIMER4;
