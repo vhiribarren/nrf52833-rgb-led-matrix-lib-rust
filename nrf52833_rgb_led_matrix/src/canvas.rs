@@ -119,7 +119,7 @@ pub enum BlendMode {
 }
 
 #[derive(Clone)]
-pub struct Canvas<const WIDTH: usize, const HEIGHT: usize>(pub(crate) [[Color; WIDTH]; HEIGHT]);
+pub struct Canvas<const WIDTH: usize, const HEIGHT: usize>(pub [[Color; WIDTH]; HEIGHT]);
 
 impl Canvas<64, 32> {
     pub const fn with_64x32() -> Self {
