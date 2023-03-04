@@ -52,7 +52,7 @@ macro_rules! init_scheduled_led_matrix_system {
         let scheduled_led_matrix =
             ScheduledLedMatrix::take_ref(led_matrix, Timer16Mhz::new($peripherals.TIMER4));
 
-        cortex_m::interrupt::free(|cs| {
+        ::cortex_m::interrupt::free(|cs| {
             let mut borrowed_scheduled_led_matrix = scheduled_led_matrix.borrow(cs).borrow_mut();
             let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
             led_matrix.start_rendering_loop();
