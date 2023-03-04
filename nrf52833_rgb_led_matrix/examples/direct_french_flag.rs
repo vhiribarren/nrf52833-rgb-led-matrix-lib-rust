@@ -27,32 +27,17 @@ SOFTWARE.
 
 use cortex_m_rt::entry;
 
-use nrf52833_hal::gpio;
 use nrf52833_rgb_led_matrix::canvas::{Canvas, Color};
-use nrf52833_rgb_led_matrix::ledmatrix::{LedMatrix, LedMatrixPins64x32};
+use nrf52833_rgb_led_matrix::ledmatrix::LedMatrix;
+use nrf52833_rgb_led_matrix::utils::MicrobitPinMapFor64x32;
 use panic_halt as _;
 
 #[entry]
 fn main() -> ! {
     let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
-    let p0 = gpio::p0::Parts::new(peripherals.P0);
-    let p1 = gpio::p1::Parts::new(peripherals.P1);
+    let pins = MicrobitPinMapFor64x32::new(peripherals.P0, peripherals.P1);
 
-    let mut m = LedMatrix::new(LedMatrixPins64x32 {
-        r1: p0.p0_02.into(),
-        g1: p0.p0_03.into(),
-        b1: p0.p0_04.into(),
-        r2: p0.p0_31.into(),
-        g2: p0.p0_28.into(),
-        b2: p0.p0_14.into(),
-        a: p1.p1_05.into(),
-        b: p0.p0_11.into(),
-        c: p0.p0_10.into(),
-        d: p0.p0_09.into(),
-        clk: p0.p0_30.into(),
-        lat: p0.p0_23.into(),
-        oe: p0.p0_12.into(),
-    });
+    let mut m = LedMatrix::new(pins.led_matrix);
 
     let mut canvas = Canvas::with_64x32();
 

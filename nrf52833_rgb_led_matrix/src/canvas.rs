@@ -256,7 +256,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
         let mut remain = number;
         while remain > 9 {
             digit_nb += 1;
-            remain = remain / 10;
+            remain /= 10;
         }
         let digit_nb = digit_nb;
         let mut to_draw = number;
@@ -264,7 +264,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
             let divisor = 10_u32.pow(digit_nb - idx - 1);
             let extracted_digit = to_draw / divisor;
             let extracted_digit_char = char::from_digit(extracted_digit, 10).unwrap();
-            to_draw = to_draw - extracted_digit * divisor;
+            to_draw -= extracted_digit * divisor;
             let stencil = font.stencil_for(extracted_digit_char);
             let stencil_width = stencil.0[0].len();
             self.draw_stencil(

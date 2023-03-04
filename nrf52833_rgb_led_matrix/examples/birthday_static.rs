@@ -29,13 +29,14 @@ use cortex_m_rt::entry;
 use nrf52833_rgb_led_matrix::{
     canvas::{Color, TextOptions},
     fonts::Font5x7,
-    init_scheduled_led_matrix, models,
+    init_scheduled_led_matrix_system, models, register_panic_handler_with_logging,
 };
 
 #[entry]
 fn main() -> ! {
+    register_panic_handler_with_logging!();
     let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
-    let scheduled_led_matrix = init_scheduled_led_matrix!(peripherals);
+    let scheduled_led_matrix = init_scheduled_led_matrix_system!(peripherals);
 
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_scheduled_led_matrix = scheduled_led_matrix.borrow(cs).borrow_mut();

@@ -26,18 +26,21 @@ SOFTWARE.
 #![no_std]
 
 use cortex_m_rt::entry;
-use nrf52833_rgb_led_matrix::{init_scheduled_led_matrix, models};
+use nrf52833_rgb_led_matrix::{
+    init_scheduled_led_matrix_system, models, register_panic_handler_with_logging,
+};
 
 #[entry]
 fn main() -> ! {
+    register_panic_handler_with_logging!();
     let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
-    let scheduled_led_matrix = init_scheduled_led_matrix!(peripherals);
+    let scheduled_led_matrix = init_scheduled_led_matrix_system!(peripherals);
 
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_scheduled_led_matrix = scheduled_led_matrix.borrow(cs).borrow_mut();
         let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
         let canvas = led_matrix.borrow_mut_canvas();
-        canvas.draw_canvas(5, 5, &models::FRENCH_FLAG, Default::default());
+        canvas.draw_canvas(5, 5, &models::icons::FRENCH_FLAG, Default::default());
     });
 
     loop {

@@ -24,6 +24,9 @@ SOFTWARE.
 
 #![no_std]
 
+pub use hal::pac;
+pub use nrf52833_hal as hal;
+
 pub mod canvas;
 pub mod fonts;
 pub mod ledmatrix;

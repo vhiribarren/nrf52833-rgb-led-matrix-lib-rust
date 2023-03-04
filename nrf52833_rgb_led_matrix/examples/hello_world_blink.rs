@@ -31,16 +31,19 @@ use cortex_m_rt::entry;
 use nrf52833_hal::Delay;
 use nrf52833_rgb_led_matrix::canvas::{Canvas, Color, TextOptions};
 use nrf52833_rgb_led_matrix::fonts::Font5x7;
-use nrf52833_rgb_led_matrix::init_scheduled_led_matrix;
+use nrf52833_rgb_led_matrix::{
+    init_scheduled_led_matrix_system, register_panic_handler_with_logging,
+};
 
 const CANVAS_SWITCH_DELAY_MICROSEC: u32 = 2_000_000;
 
 #[entry]
 fn main() -> ! {
+    register_panic_handler_with_logging!();
     let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
     let core_periphs = nrf52833_hal::pac::CorePeripherals::take().unwrap();
 
-    let scheduled_led_matrix = init_scheduled_led_matrix!(peripherals);
+    let scheduled_led_matrix = init_scheduled_led_matrix_system!(peripherals);
 
     let mut delay = Delay::new(core_periphs.SYST);
 
