@@ -59,16 +59,16 @@ fn main() -> ! {
     let mut pin_r1 = p0.p0_02.into_push_pull_output(Level::Low);
     let mut pin_g1 = p0.p0_03.into_push_pull_output(Level::Low);
     let mut pin_b1 = p0.p0_04.into_push_pull_output(Level::Low);
-    let mut pin_r2 = p0.p0_31.into_push_pull_output(Level::Low);
-    let mut pin_g2 = p0.p0_28.into_push_pull_output(Level::Low);
-    let mut pin_b2 = p0.p0_14.into_push_pull_output(Level::Low);
-    let mut pin_a = p1.p1_05.into_push_pull_output(Level::Low);
-    let mut pin_b = p0.p0_11.into_push_pull_output(Level::Low);
-    let mut pin_c = p0.p0_10.into_push_pull_output(Level::Low);
-    let mut pin_d = p0.p0_09.into_push_pull_output(Level::Low);
-    let mut pin_clk = p0.p0_30.into_push_pull_output(Level::Low);
-    let mut pin_lat = p0.p0_22.into_push_pull_output(Level::Low);
-    let mut pin_oe = p0.p0_12.into_push_pull_output(Level::Low);
+    let mut pin_r2 = p0.p0_11.into_push_pull_output(Level::Low);
+    let mut pin_g2 = p0.p0_10.into_push_pull_output(Level::Low);
+    let mut pin_b2 = p0.p0_09.into_push_pull_output(Level::Low);
+    let mut pin_a = p0.p0_12.into_push_pull_output(Level::Low);
+    let mut pin_b = p0.p0_17.into_push_pull_output(Level::Low);
+    let mut pin_c = p0.p0_01.into_push_pull_output(Level::Low);
+    let mut pin_d = p0.p0_13.into_push_pull_output(Level::Low);
+    let mut pin_clk = p1.p1_02.into_push_pull_output(Level::Low);
+    let mut pin_lat = p1.p1_00.into_push_pull_output(Level::Low);
+    let mut pin_oe = p0.p0_26.into_push_pull_output(Level::Low);
 
     for col in 00..64 {
         if col < 64 / 3 {
