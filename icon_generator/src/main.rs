@@ -26,7 +26,8 @@ use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use clap::{Parser, ValueEnum};
+use clap::error::ErrorKind;
+use clap::{CommandFactory, Parser, ValueEnum};
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, GenericImageView};
 
@@ -34,6 +35,12 @@ use image::{DynamicImage, GenericImageView};
 enum Mode {
     Icon,
     Stencil,
+}
+
+#[derive(Clone, ValueEnum, PartialEq)]
+enum Format {
+    Binary,
+    Text,
 }
 
 #[derive(Parser)]
@@ -52,10 +59,15 @@ struct Cli {
     image_file: PathBuf,
     #[arg(short, long)]
     /// By default, output to standard output. A file can be declared as output target.
-    output_rust_file: Option<PathBuf>,
+    ///
+    /// Required when output format is binary
+    output_file: Option<PathBuf>,
     /// Generate RGB canvas images (icons), or stencils (one color, less heavy)
     #[arg(value_enum, short, long, default_value_t = Mode::Icon)]
     mode: Mode,
+    /// Select textual Rust code, or binary (to use with e.g. include_bytes! macro)
+    #[arg(value_enum, short, long, default_value_t = Format::Text)]
+    format: Format,
     /// Name of Rust element. By default, try to uppercase and use the filename
     #[arg(short, long)]
     name: Option<String>,
@@ -63,6 +75,15 @@ struct Cli {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Cli::parse();
+    if args.format == Format::Binary && args.output_file.is_none() {
+        let mut cmd = Cli::command();
+        cmd.error(
+            ErrorKind::ArgumentConflict,
+            "When format is binary, an output file must be provided",
+        )
+        .exit()
+    }
+
     let image = ImageReader::open(&args.image_file)?
         .decode()
         .map_err(|_| "Unsupported image format.")?;
@@ -77,24 +98,29 @@ fn main() -> Result<(), Box<dyn Error>> {
             .map_err(|_| "Error while converting filename to element name")?,
     }
     .to_uppercase();
-    let output_string = match args.mode {
-        Mode::Icon => generate_icon(&image, &element_name),
-        Mode::Stencil => generate_stencil(&image, &element_name),
+    let output_data = match (args.mode, args.format) {
+        (Mode::Icon, Format::Text) => generate_icon_txt(&image, &element_name).into_bytes(),
+        (Mode::Icon, Format::Binary) => generate_icon_bin(&image),
+        (Mode::Stencil, Format::Text) => generate_stencil_txt(&image, &element_name).into_bytes(),
+        (Mode::Stencil, Format::Binary) => generate_stencil_bin(&image),
     };
-    match args.output_rust_file {
+    match args.output_file {
         Some(file) => {
             if Path::new(file.as_os_str()).exists() {
                 return Err(format!("Filename {} already exists", file.display()))?;
             }
-            fs::write(file, output_string)?;
+            fs::write(file, output_data)?;
         }
-        None => println!("{output_string}"),
+        None => {
+            let output_string = String::from_utf8(output_data)?;
+            println!("{output_string}")
+        }
     }
     Ok(())
 }
 
 #[allow(clippy::single_char_add_str)]
-fn generate_icon(image: &DynamicImage, element_name: &str) -> String {
+fn generate_icon_txt(image: &DynamicImage, element_name: &str) -> String {
     let (width, height) = image.dimensions();
     let mut array_rows = String::new();
 
@@ -120,8 +146,27 @@ pub const {element_name}: Canvas<{width}, {height}> = Canvas([
     )
 }
 
+fn generate_icon_bin(image: &DynamicImage) -> Vec<u8> {
+    let (width, height) = image.dimensions();
+    let mut data = Vec::<u8>::new();
+    for y in 0..height {
+        for x in 0..width {
+            let pixel = image.get_pixel(x, y);
+            let [r, g, b, a] = pixel.0;
+            if a > u8::MAX / 2 {
+                data.push(r);
+                data.push(g);
+                data.push(b)
+            } else {
+                (0..3).for_each(|_| data.push(0));
+            }
+        }
+    }
+    data
+}
+
 #[allow(clippy::single_char_add_str)]
-fn generate_stencil(image: &DynamicImage, element_name: &str) -> String {
+fn generate_stencil_txt(image: &DynamicImage, element_name: &str) -> String {
     let (width, height) = image.dimensions();
     let mut array_rows = String::new();
 
@@ -145,4 +190,22 @@ pub const {element_name}: Stencil<{width}, {height}> = Stencil([
 {array_rows}
 ]);"#
     )
+}
+
+#[allow(clippy::single_char_add_str)]
+fn generate_stencil_bin(image: &DynamicImage) -> Vec<u8> {
+    let (width, height) = image.dimensions();
+    let mut data = Vec::<u8>::new();
+    for y in 0..height {
+        for x in 0..width {
+            let pixel = image.get_pixel(x, y);
+            let [r, g, b, a] = pixel.0;
+            if a > u8::MAX / 2 && r < u8::MAX && g < u8::MAX && b < u8::MAX {
+                data.push(1);
+            } else {
+                data.push(0);
+            }
+        }
+    }
+    data
 }
