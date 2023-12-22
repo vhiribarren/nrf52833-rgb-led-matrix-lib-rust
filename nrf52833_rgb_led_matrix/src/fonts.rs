@@ -34,6 +34,7 @@ impl Font<5, 7> for Font5x7 {
     fn stencil_for(&self, c: char) -> &'static Stencil5x7 {
         match c {
             ' ' => &Self::EMPTY,
+            '\'' => &Self::QUOTE,
             '0' => &Self::N_0,
             '1' => &Self::N_1,
             '2' => &Self::N_2,
@@ -58,6 +59,7 @@ impl Font<5, 7> for Font5x7 {
             'o' | 'O' => &Self::O,
             'p' | 'P' => &Self::P,
             'r' | 'R' => &Self::R,
+            's' | 'S' => &Self::S,
             't' | 'T' => &Self::T,
             'u' | 'U' => &Self::U,
             'v' | 'V' => &Self::V,
@@ -87,6 +89,16 @@ impl Font5x7 {
         [1, 1, 0, 1, 1],
         [1, 0, 0, 0, 1],
         [1, 1, 1, 1, 1],
+    ]);
+
+    pub const QUOTE: Stencil5x7 = Stencil([
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
     ]);
 
     pub const N_0: Stencil5x7 = Stencil([
@@ -317,6 +329,15 @@ impl Font5x7 {
         [1, 0, 1, 0, 0],
         [1, 0, 0, 1, 0],
         [1, 0, 0, 0, 1],
+    ]);
+    pub const S: Stencil5x7 = Stencil([
+        [0, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 1, 0, 1],
+        [1, 0, 0, 0, 1],
+        [0, 1, 1, 1, 0],
     ]);
     pub const T: Stencil5x7 = Stencil([
         [1, 1, 1, 1, 1],
