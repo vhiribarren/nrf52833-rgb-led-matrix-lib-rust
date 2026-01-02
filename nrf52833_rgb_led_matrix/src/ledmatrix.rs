@@ -150,47 +150,28 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
 
         let bit_mask = 1 << bit_position.0;
 
+        // Internal macro to set pin level
+        macro_rules! set_pin {
+            ($pin:expr, $val:expr) => {
+                if ($val & bit_mask) != 0 {
+                    $pin.set_high().unwrap();
+                } else {
+                    $pin.set_low().unwrap();
+                }
+            };
+        }
+
         for col_index in 0..WIDTH {
             let color_top = &raw_canvas[line_index][col_index];
             let color_bottom = &raw_canvas[line_index + half_height][col_index];
 
-            // Top R
-            if (color_top.r() & bit_mask) != 0 {
-                self.top_colors[0].set_high().unwrap();
-            } else {
-                self.top_colors[0].set_low().unwrap();
-            }
-            // Top G
-            if (color_top.g() & bit_mask) != 0 {
-                self.top_colors[1].set_high().unwrap();
-            } else {
-                self.top_colors[1].set_low().unwrap();
-            }
-            // Top B
-            if (color_top.b() & bit_mask) != 0 {
-                self.top_colors[2].set_high().unwrap();
-            } else {
-                self.top_colors[2].set_low().unwrap();
-            }
+            set_pin!(self.top_colors[0], color_top.r());
+            set_pin!(self.top_colors[1], color_top.g());
+            set_pin!(self.top_colors[2], color_top.b());
 
-            // Bottom R
-            if (color_bottom.r() & bit_mask) != 0 {
-                self.bottom_colors[0].set_high().unwrap();
-            } else {
-                self.bottom_colors[0].set_low().unwrap();
-            }
-            // Bottom G
-            if (color_bottom.g() & bit_mask) != 0 {
-                self.bottom_colors[1].set_high().unwrap();
-            } else {
-                self.bottom_colors[1].set_low().unwrap();
-            }
-            // Bottom B
-            if (color_bottom.b() & bit_mask) != 0 {
-                self.bottom_colors[2].set_high().unwrap();
-            } else {
-                self.bottom_colors[2].set_low().unwrap();
-            }
+            set_pin!(self.bottom_colors[0], color_bottom.r());
+            set_pin!(self.bottom_colors[1], color_bottom.g());
+            set_pin!(self.bottom_colors[2], color_bottom.b());
 
             self.clock_color();
         }
