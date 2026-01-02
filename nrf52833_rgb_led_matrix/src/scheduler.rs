@@ -39,7 +39,7 @@ pub type SharedScheduledMatrix64x32 = SharedScheduledMatrix<4, 64, 32>;
 
 static SCHEDULED_LED_MATRIX: SharedScheduledMatrix64x32 = Mutex::new(RefCell::new(None));
 
-const BCM_CYCLES_NB: u8 = 2; // min is 1
+const BCM_CYCLES_NB: u8 = 4; // min is 1
 const BCM_BASE_PERIOD_MICROSEC: u32 = 1;
 
 #[interrupt]

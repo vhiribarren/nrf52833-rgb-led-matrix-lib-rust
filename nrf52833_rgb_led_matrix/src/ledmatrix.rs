@@ -132,21 +132,66 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         let half_height = HEIGHT / 2;
         let raw_canvas = canvas.as_ref();
         let line_index = line;
+
+        // Initial code using iterator chain below, more compact.
+        // However, it is not performant enough, max BCM was 2, it was flickering a lot when set above
+        //
+        // let color_chain = color_top.into_iter().chain(color_bottom.into_iter());
+        // let pin_chain = self
+        //     .top_colors
+        //     .iter_mut()
+        //     .chain(self.bottom_colors.iter_mut());
+        // for (pin, color) in pin_chain.zip(color_chain) {
+        //     if (color >> bit_position.0) & 0x01 == 1 {
+        //         pin.set_high().unwrap();
+        //     } else {
+        //         pin.set_low().unwrap();
+        //     }
+
+        let bit_mask = 1 << bit_position.0;
+
         for col_index in 0..WIDTH {
             let color_top = &raw_canvas[line_index][col_index];
             let color_bottom = &raw_canvas[line_index + half_height][col_index];
-            let color_chain = color_top.into_iter().chain(color_bottom.into_iter());
-            let pin_chain = self
-                .top_colors
-                .iter_mut()
-                .chain(self.bottom_colors.iter_mut());
-            for (pin, color) in pin_chain.zip(color_chain) {
-                if (color >> bit_position.0) & 0x01 == 1 {
-                    pin.set_high().unwrap();
-                } else {
-                    pin.set_low().unwrap();
-                }
+
+            // Top R
+            if (color_top.r() & bit_mask) != 0 {
+                self.top_colors[0].set_high().unwrap();
+            } else {
+                self.top_colors[0].set_low().unwrap();
             }
+            // Top G
+            if (color_top.g() & bit_mask) != 0 {
+                self.top_colors[1].set_high().unwrap();
+            } else {
+                self.top_colors[1].set_low().unwrap();
+            }
+            // Top B
+            if (color_top.b() & bit_mask) != 0 {
+                self.top_colors[2].set_high().unwrap();
+            } else {
+                self.top_colors[2].set_low().unwrap();
+            }
+
+            // Bottom R
+            if (color_bottom.r() & bit_mask) != 0 {
+                self.bottom_colors[0].set_high().unwrap();
+            } else {
+                self.bottom_colors[0].set_low().unwrap();
+            }
+            // Bottom G
+            if (color_bottom.g() & bit_mask) != 0 {
+                self.bottom_colors[1].set_high().unwrap();
+            } else {
+                self.bottom_colors[1].set_low().unwrap();
+            }
+            // Bottom B
+            if (color_bottom.b() & bit_mask) != 0 {
+                self.bottom_colors[2].set_high().unwrap();
+            } else {
+                self.bottom_colors[2].set_low().unwrap();
+            }
+
             self.clock_color();
         }
         self.latch_to_line(line);

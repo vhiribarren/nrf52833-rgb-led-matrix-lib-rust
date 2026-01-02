@@ -101,10 +101,8 @@ Some git [pre-commit] hooks are available. You can install them using:
 - For now, code not optimized; notably, GPIO are manipulated one at a time
   through the HAL instead of manipulating them at once through a direct register
   access, and I do not really care on precise timings
-- Binary Code Modulation is implemented to have more than 8 colors. For now, I
-  only manage to use 2 BCM bit plans with the Microbit, but it should allow
-  about 64 colors? Anyay, the screen is not refreshed quickly enough to allow
-  more colors. No gamma correction.
+- Binary Code Modulation is implemented to have more than 8 colors. No gamma
+  correction.
 - I stick to heapless development, which make it a bit hard to design something
   that can adapt to various LED matrix sizes
 - Currrently, globally hard-coded for a 64x32 RGB LED matrix, I have some issues
