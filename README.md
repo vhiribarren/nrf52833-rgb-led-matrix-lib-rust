@@ -117,7 +117,7 @@ Some git [pre-commit] hooks are available. You can install them using:
 
 MIT License
 
-Copyright (c) 2022, 2023 Vincent Hiribarren
+Copyright (c) 2022, 2023, 2025, 2026 Vincent Hiribarren
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

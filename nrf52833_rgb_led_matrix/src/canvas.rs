@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2022, 2023 Vincent Hiribarren
+Copyright (c) 2022, 2023, 2025, 2026 Vincent Hiribarren
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -156,6 +156,14 @@ impl<const WIDTH: usize, const HEIGHT: usize> Canvas<WIDTH, HEIGHT> {
     }
     pub fn clear(&mut self) -> &mut Self {
         self.clear_with_color(Color::BLACK)
+    }
+    pub fn apply_luminosity(&mut self, strength: u8) -> &mut Self {
+        for line in 0..HEIGHT {
+            for col in 0..WIDTH {
+                self.0[line][col] = self.0[line][col] * (strength as f32 / 255 as f32);
+            }
+        }
+        self
     }
     pub fn draw_rectangle(
         &mut self,

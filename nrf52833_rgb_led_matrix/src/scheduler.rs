@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2023 Vincent Hiribarren
+Copyright (c) 2023, 2025, 2026 Vincent Hiribarren
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,8 +39,8 @@ pub type SharedScheduledMatrix64x32 = SharedScheduledMatrix<4, 64, 32>;
 
 static SCHEDULED_LED_MATRIX: SharedScheduledMatrix64x32 = Mutex::new(RefCell::new(None));
 
-const BCM_CYCLES_NB: u8 = 4; // min is 1
-const BCM_BASE_PERIOD_MICROSEC: u32 = 1;
+const BCM_CYCLES_NB: u8 = 6; // min is 1
+const BCM_BASE_PERIOD_MICROSEC: u32 = 5;
 
 #[interrupt]
 fn TIMER4() {

@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2022, 2023, 2026 Vincent Hiribarren
+Copyright (c) 2026 Vincent Hiribarren
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,44 +35,21 @@ fn main() -> ! {
     register_panic_handler_with_logging!();
     let peripherals = nrf52833_hal::pac::Peripherals::take().unwrap();
     let scheduled_led_matrix = init_scheduled_led_matrix_system!(peripherals);
-
     cortex_m::interrupt::free(|cs| {
         let mut borrowed_scheduled_led_matrix = scheduled_led_matrix.borrow(cs).borrow_mut();
         let led_matrix = borrowed_scheduled_led_matrix.as_mut().unwrap();
         let canvas = led_matrix.borrow_mut_canvas();
         let w = canvas.width();
         let h = canvas.height();
-        let canvas_array = canvas.as_mut();
-
-        let color_segment = w / 6;
-        let ramp_color = |pos: usize| -> u8 { (255 * pos / color_segment) as u8 };
+        let inv_w = 1.0 / (w - 1) as f32;
+        let inv_h = 1.0 / (h - 1) as f32;
         for y in 0..h {
             for x in 0..w {
-                let coeff_y = (h - y - 1) as f32 / (h - 1) as f32;
-                canvas_array[y][x] = coeff_y
-                    * match x {
-                        x if x <= color_segment => Color::new(255, ramp_color(x), 0),
-                        x if x <= 2 * color_segment => {
-                            Color::new(ramp_color(2 * color_segment - x), 255, 0)
-                        }
-                        x if x <= 3 * color_segment => {
-                            Color::new(0, 255, ramp_color(x - 2 * color_segment))
-                        }
-                        x if x <= 4 * color_segment => {
-                            Color::new(0, ramp_color(4 * color_segment - x), 255)
-                        }
-                        x if x <= 5 * color_segment => {
-                            Color::new(ramp_color(x - 4 * color_segment), 0, 255)
-                        }
-                        x if x <= 6 * color_segment => {
-                            Color::new(255, 0, ramp_color(6 * color_segment - x))
-                        }
-                        _ => Color::new(255, 0, 0),
-                    };
+                let coeff = (255.0 * (y as f32 * inv_h) * (x as f32 * inv_w)) as u8;
+                canvas.draw_pixel(x, y, Color::new(coeff, coeff, coeff));
             }
         }
     });
-
     loop {
         cortex_m::asm::wfi();
     }
