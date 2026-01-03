@@ -129,6 +129,7 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         line: usize,
         bit_position: ColorBitPosition,
     ) {
+        self.pin_oe.set_high().unwrap();
         let half_height = HEIGHT / 2;
         let raw_canvas = canvas.as_ref();
         let line_index = line;
@@ -176,6 +177,7 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
             self.clock_color();
         }
         self.latch_to_line(line);
+        self.pin_oe.set_low().unwrap();
     }
 
     pub fn draw_canvas(&mut self, canvas: &Canvas<WIDTH, HEIGHT>, bit_position: ColorBitPosition) {
@@ -219,7 +221,6 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
     }
 
     fn latch_to_line(&mut self, line: usize) {
-        self.pin_oe.set_high().unwrap();
         let mline = line % 2_usize.pow(LINECTRL_PIN_COUNT as u32);
         for pin_idx in 0..self.line_ctrl.len() {
             let enable_pin = (mline & (1 << pin_idx)) != 0;
@@ -229,7 +230,6 @@ impl<const LINECTRL_PIN_COUNT: usize, const WIDTH: usize, const HEIGHT: usize>
         }
         self.pin_lat.set_high().unwrap();
         self.pin_lat.set_low().unwrap();
-        self.pin_oe.set_low().unwrap();
     }
 
     fn clock_color(&mut self) {
